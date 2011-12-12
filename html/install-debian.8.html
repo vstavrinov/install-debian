@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.21 -->
-<!-- CreationDate: Mon Dec 12 16:39:46 2011 -->
+<!-- CreationDate: Mon Dec 12 17:09:10 2011 -->
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -46,13 +46,16 @@
 
 <p style="margin-left:11%; margin-top: 1em"><b>install-debian</b>
 [<b>-lctvdh</b>] [<b>-D</b> <i>DEVICE</i> | <b>-A</b>
-<i>ARRAY</i>] [<b>-m</b> <i>MIRROR</i>] <br>
+<i>ARRAY</i>] [<b>-r</b> <i>LEVEL</i>] [<b>-x</b>
+<i>SPARE</i>] <br>
 [<b>-R</b> <i>ROOT</i>] [<b>-U</b> <i>USR</i>] [<b>-B</b>
 <i>var</i>] [<b>-H</b> <i>home</i>] [<b>-O</b> <i>opt</i>]
 [<b>-S</b> <i>srv</i>] <br>
+[<b>-m</b> <i>MIRROR</i>] [<b>-u</b> <i>SUITE</i>]
+[<b>-a</b> <i>ARCH</i>] [<b>-o</b> <i>BSOPT</i>] [<b>-K</b>
+<i>KERNEL</i>] <br>
 [<b>-I</b> <i>ADDRESS</i>] [<b>-M</b> <i>NETMASK</i>]
-[<b>-G</b> <i>GATEWAY</i>] [ <b>-o</b> <i>BSOPT</i> ] <br>
-[<b>-r</b> <i>LEVEL</i>] [<b>-x</b> <i>SPARE</i>] <br>
+[<b>-G</b> <i>GATEWAY</i>] <br>
 [<b>-N</b> <i>HOSTNAME</i>] [<b>-P</b> <i>DOMAIN</i>]
 [<b>-E</b> <i>NAMESERVER</i>] <br>
 [<b>-T</b> <i>MAILTO</i>] [<b>-Z</b> <i>TIMEZONE</i>]
@@ -99,14 +102,39 @@ with command line options and configuration variables.</p>
 <p style="margin-left:22%;">Disk to install to, e.g.
 /dev/sda</p>
 
+<p style="margin-left:11%;"><b>-A</b> <i>ARRAY</i></p>
+
+<p style="margin-left:22%;">Quoted list of RAID components
+separated by space, e.g. &quot;/dev/sda /dev/sdb&quot;</p>
+
+<p style="margin-left:11%;"><b>-r</b> <i>LEVEL</i></p>
+
+<p style="margin-left:22%;">Raid level (see mdadm), e.g.
+mirror</p>
+
+<p style="margin-left:11%;"><b>-x</b> <i>SPARE</i></p>
+
+<p style="margin-left:22%;">Number of spare (eXtra)
+devices, e.g. 2</p>
+
 <p style="margin-left:11%;"><b>-m</b> <i>MIRROR</i></p>
 
 <p style="margin-left:22%;">URL to install from, e.g.
 http://cdn.debian.org/debian</p>
 
-<p style="margin-left:11%;"><b>-a ARCH</b></p>
+<p style="margin-left:11%;"><b>-u</b> <i>SUITE</i></p>
+
+<p style="margin-left:22%;">Distribution (suite), e.g.
+unstable</p>
+
+<p style="margin-left:11%;"><b>-a</b> <i>ARCH</i></p>
 
 <p style="margin-left:22%;">Architecture, e.g. amd64</p>
+
+<p style="margin-left:11%;"><b>-K</b> <i>KERNEL</i></p>
+
+<p style="margin-left:22%;">Define kernel package as
+linux-image-<i>KERNEL</i>, e.g. amd64</p>
 
 <table width="100%" border="0" rules="none" frame="void"
        cellspacing="0" cellpadding="0">
@@ -142,31 +170,6 @@ http://cdn.debian.org/debian</p>
 
 <p style="margin-left:22%;">Extra debootstrap options, e.g.
 <b>--no-check-gpg</b></p>
-
-<p style="margin-left:11%;"><b>-A</b> <i>ARRAY</i></p>
-
-<p style="margin-left:22%;">Quoted list of RAID components
-separated by space, e.g. &quot;/dev/sda /dev/sdb&quot;</p>
-
-<p style="margin-left:11%;"><b>-r</b> <i>LEVEL</i></p>
-
-<p style="margin-left:22%;">Raid level (see mdadm), e.g.
-mirror</p>
-
-<p style="margin-left:11%;"><b>-x</b> <i>SPARE</i></p>
-
-<p style="margin-left:22%;">Number of spare (eXtra)
-devices, e.g. 2</p>
-
-<p style="margin-left:11%;"><b>-u SUITE</b></p>
-
-<p style="margin-left:22%;">Distribution (suite), e.g.
-unstable</p>
-
-<p style="margin-left:11%;"><b>-K KERNEL</b></p>
-
-<p style="margin-left:22%;">Define kernel package as
-linux-image-KERNEL, e.g. amd64</p>
 
 <p style="margin-left:11%;"><b>-R</b> <i>ROOT</i></p>
 
