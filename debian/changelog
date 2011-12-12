@@ -1,0 +1,5 @@
+install-debian (2.1.1) unstable; urgency=low
+
+  * Initial Release.
+
+ -- Vladimir Stavrinov <vstavrinov@gmail.com>  Mon, 12 Dec 2011 11:41:18 +0400
