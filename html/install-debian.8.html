@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.21 -->
-<!-- CreationDate: Mon Dec 12 16:26:50 2011 -->
+<!-- CreationDate: Mon Dec 12 16:35:38 2011 -->
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -96,12 +96,12 @@ with command line options and configuration variables.</p>
 <p style="margin-left:11%; margin-top: 1em"><b>-D</b>
 <i>DEVICE</i></p>
 
-<p style="margin-left:22%;">to install to, e.g.
+<p style="margin-left:22%;">Disk to install to, e.g.
 /dev/sda</p>
 
 <p style="margin-left:11%;"><b>-m</b> <i>MIRROR</i></p>
 
-<p style="margin-left:22%;">to install from, e.g.
+<p style="margin-left:22%;">URL to install from, e.g.
 http://cdn.debian.org/debian</p>
 
 <p style="margin-left:11%;"><b>-a ARCH</b></p>
@@ -120,7 +120,7 @@ http://cdn.debian.org/debian</p>
 <td width="60%">
 
 
-<p>use cdebootstrap instead of debootstrap</p></td>
+<p>Use cdebootstrap instead of debootstrap</p></td>
 <td width="18%">
 </td></tr>
 <tr valign="top" align="left">
@@ -133,29 +133,29 @@ http://cdn.debian.org/debian</p>
 <td width="60%">
 
 
-<p>allow untrusted mirror</p></td>
+<p>Allow untrusted mirror</p></td>
 <td width="18%">
 </td></tr>
 </table>
 
 <p style="margin-left:11%;"><b>-o</b> <i>BSOPT</i></p>
 
-<p style="margin-left:22%;">debootstrap extra options, e.g.
+<p style="margin-left:22%;">Extra debootstrap options, e.g.
 <b>--no-check-gpg</b></p>
 
 <p style="margin-left:11%;"><b>-A</b> <i>ARRAY</i></p>
 
-<p style="margin-left:22%;">quoted list of RAID components
+<p style="margin-left:22%;">Quoted list of RAID components
 separated by space, e.g. &quot;/dev/sda /dev/sdb&quot;</p>
 
 <p style="margin-left:11%;"><b>-r</b> <i>LEVEL</i></p>
 
-<p style="margin-left:22%;">raid level (see mdadm), e.g.
+<p style="margin-left:22%;">Raid level (see mdadm), e.g.
 mirror</p>
 
 <p style="margin-left:11%;"><b>-x</b> <i>SPARE</i></p>
 
-<p style="margin-left:22%;">number of spare (eXtra)
+<p style="margin-left:22%;">Number of spare (eXtra)
 devices, e.g. 2</p>
 
 <p style="margin-left:11%;"><b>-K KERNEL</b></p>
@@ -170,8 +170,8 @@ unstable</p>
 
 <p style="margin-left:11%;"><b>-R</b> <i>ROOT</i></p>
 
-<p style="margin-left:22%;">/ (root) partition size, Mb [
-480 ]</p>
+<p style="margin-left:22%;">Root volume / size, Mb [ 480
+]</p>
 
 <table width="100%" border="0" rules="none" frame="void"
        cellspacing="0" cellpadding="0">
@@ -182,11 +182,11 @@ unstable</p>
 
 <p><b>-U</b> <i>USR</i></p></td>
 <td width="2%"></td>
-<td width="49%">
+<td width="44%">
 
 
-<p>/usr partition size, Mb [ 3072 ]</p></td>
-<td width="29%">
+<p>Volume /usr size, Mb [ 3072 ]</p></td>
+<td width="34%">
 </td></tr>
 <tr valign="top" align="left">
 <td width="11%"></td>
@@ -195,18 +195,18 @@ unstable</p>
 
 <p><b>-B</b> <i>var</i></p></td>
 <td width="2%"></td>
-<td width="49%">
+<td width="44%">
 
 
-<p>/<i>var</i> partition size, Mb [ 2048 ]</p></td>
-<td width="29%">
+<p>Volume /<i>var</i> size, Mb [ 2048 ]</p></td>
+<td width="34%">
 </td></tr>
 </table>
 
 <p style="margin-left:11%;"><b>-H</b> <i>home</i></p>
 
-<p style="margin-left:22%;">/<i>home</i> partition size, Mb
-[ 1024 ]</p>
+<p style="margin-left:22%;">Volume /<i>home</i> size, Mb [
+1024 ]</p>
 
 <table width="100%" border="0" rules="none" frame="void"
        cellspacing="0" cellpadding="0">
@@ -217,11 +217,11 @@ unstable</p>
 
 <p><b>-O</b> <i>opt</i></p></td>
 <td width="2%"></td>
-<td width="44%">
+<td width="40%">
 
 
-<p>/<i>opt</i> partition size, Mb [ 0 ]</p></td>
-<td width="34%">
+<p>Volume /<i>opt</i> size, Mb [ 0 ]</p></td>
+<td width="38%">
 </td></tr>
 <tr valign="top" align="left">
 <td width="11%"></td>
@@ -230,11 +230,11 @@ unstable</p>
 
 <p><b>-S</b> <i>srv</i></p></td>
 <td width="2%"></td>
-<td width="44%">
+<td width="40%">
 
 
-<p>/<i>srv</i> partition size, Mb [ 0 ]</p></td>
-<td width="34%">
+<p>Volume /<i>srv</i> size, Mb [ 0 ]</p></td>
+<td width="38%">
 </td></tr>
 </table>
 
