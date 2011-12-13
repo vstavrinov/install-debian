@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.21 -->
-<!-- CreationDate: Tue Dec 13 10:42:11 2011 -->
+<!-- CreationDate: Tue Dec 13 13:43:43 2011 -->
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -85,13 +85,14 @@ disks and Level 10 RAID for 4 or more disks. If there are
 odd number disks in array, one of them become spare disk.
 Partitioning scheme support separate partition for /boot,
 and separate logical volume for root filesystem, /usr,
-/<i>var</i> and /<i>home</i>, but for /<i>opt</i> and
+/<i>var</i>, tmp and /<i>home</i>, but for /<i>opt</i> and
 /<i>srv</i> only if their size is not zero. Also there are
 option to install system into single premounted directory.
 In this case partitioning and mounting every part leave on
 Your own. After installation root password will be sent to
 Your mail box. The default and most settings You can change
-with command line options and configuration variables.</p>
+with command line options and configuration variables used
+here as options values.</p>
 
 <h2>OPTIONS
 <a name="OPTIONS"></a>
@@ -117,7 +118,7 @@ mirror</p>
 <p style="margin-left:11%;"><b>-x</b> <i>SPARE</i></p>
 
 <p style="margin-left:22%;">Number of spare (eXtra)
-devices, e.g. 2</p>
+devices, e.g. 1</p>
 
 <p style="margin-left:11%;"><b>-m</b> <i>MIRROR</i></p>
 
@@ -400,11 +401,6 @@ recommended for using before doing anything else.</p></td></tr>
 
 <p style="margin-left:22%;">Local config used to override
 settings in default config.</p>
-
-<p style="margin-left:11%;"><b>~/.install-debianrc</b></p>
-
-<p style="margin-left:22%;">User config, override system
-settings</p>
 
 <h2>SEE ALSO
 <a name="SEE ALSO"></a>
