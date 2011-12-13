@@ -1,0 +1,390 @@
+<!-- Creator     : groff version 1.21 -->
+<!-- CreationDate: Tue Dec 13 13:43:43 2011 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title>install-debian.conf</title>
+
+</head>
+<body>
+
+<h1 align="center">install-debian.conf</h1>
+
+<a href="#NAME">NAME</a><br>
+<a href="#DESCRIPTION">DESCRIPTION</a><br>
+<a href="#VARIABLES">VARIABLES</a><br>
+<a href="#FILES">FILES</a><br>
+<a href="#SEE ALSO">SEE ALSO</a><br>
+<a href="#AUTHORS">AUTHORS</a><br>
+
+<hr>
+
+
+<h2>NAME
+<a name="NAME"></a>
+</h2>
+
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>install-debian.conf</b>
+- Configuration file for install-debian.</p>
+
+<h2>DESCRIPTION
+<a name="DESCRIPTION"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">This file
+sourced by install-debian script and contain shell
+variables, that may be overridden either by command line
+options or by settings sourced by main config from
+/etc/install-debian/local.conf. The last is preferable way
+of configuration as main config are useing by authors to
+add, remove or modify variables and will be overridden if it
+is not modified by user. So, to start configuration, copy
+/etc/install-debian/install-debian.conf to
+/etc/install-debian/local.conf and edit the last.</p>
+
+<h2>VARIABLES
+<a name="VARIABLES"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">All these
+variables, if not defined in config file, will set to
+it&rsquo;s defaults in install-debian script either as
+constant values or evaluated from running system. Here N is
+array components number.</p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="9%">
+
+
+<p><b>DEVICE</b></p></td>
+<td width="2%"></td>
+<td width="78%">
+
+
+<p>Disk to install to, defaults largest disk</p></td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="9%">
+
+
+<p><b>ARRAY</b></p></td>
+<td width="2%"></td>
+<td width="78%">
+
+
+<p>Quoted list of RAID components separated by space,
+defaults largest disks of the same size.</p></td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="9%">
+
+
+<p><b>LEVEL</b></p></td>
+<td width="2%"></td>
+<td width="78%">
+
+
+<p>Raid level (see mdadm), defaults mirror for N &lt; 4 and
+raid10 for N &gt;= 4</p></td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="9%">
+
+
+<p><b>SPARE</b></p></td>
+<td width="2%"></td>
+<td width="78%">
+
+
+<p>Number of spare (eXtra) devices, defaults to 1 for odd
+N.</p> </td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="9%">
+
+
+<p><b>MIRROR</b></p></td>
+<td width="2%"></td>
+<td width="78%">
+
+
+<p>URL to install from, defaults taken from
+/etc/apt/sources.list</p> </td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="9%">
+
+
+<p><b>SUITE</b></p></td>
+<td width="2%"></td>
+<td width="78%">
+
+
+<p>Distribution (suite), defaults unstable</p></td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="9%">
+
+
+<p><b>ARCH</b></p></td>
+<td width="2%"></td>
+<td width="78%">
+
+
+<p>Architecture, defaults as from dpkg
+<b>--print-architecture</b></p> </td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="9%">
+
+
+<p><b>KERNEL</b></p></td>
+<td width="2%"></td>
+<td width="78%">
+
+
+<p>Define kernel package as linux-image-KERNEL, defaults
+evaluated</p> </td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="9%">
+
+
+<p><b>BSOPT</b></p></td>
+<td width="2%"></td>
+<td width="78%">
+
+
+<p>Extra debootstrap options, defaults undefined</p></td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="9%">
+
+
+<p><b>ROOT</b></p></td>
+<td width="2%"></td>
+<td width="78%">
+
+
+<p>Root volume / size, defaults evaluated</p></td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="9%">
+
+
+<p><b>BOOT</b></p></td>
+<td width="2%"></td>
+<td width="78%">
+
+
+<p>/boot partition / size, defaults evaluated</p></td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="9%">
+
+
+<p><b>USR</b></p></td>
+<td width="2%"></td>
+<td width="78%">
+
+
+<p>Volume /usr size, Mb, defaults 3072</p></td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="9%">
+
+
+<p><b>TMP</b></p></td>
+<td width="2%"></td>
+<td width="78%">
+
+
+<p>Volume /tmp size, Mb, defaults 448</p></td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="9%">
+
+
+<p><b>var</b></p></td>
+<td width="2%"></td>
+<td width="78%">
+
+
+<p>Volume /var size, Mb, defaults 2048</p></td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="9%">
+
+
+<p><b>home</b></p></td>
+<td width="2%"></td>
+<td width="78%">
+
+
+<p>Volume /home size, Mb, defaults 1024</p></td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="9%">
+
+
+<p><b>opt</b></p></td>
+<td width="2%"></td>
+<td width="78%">
+
+
+<p>Volume /opt size, Mb, defaults 0</p></td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="9%">
+
+
+<p><b>srv</b></p></td>
+<td width="2%"></td>
+<td width="78%">
+
+
+<p>Volume /srv size, Mb, defaults 0</p></td></tr>
+</table>
+
+<p style="margin-left:11%;"><b>ADDRESS</b></p>
+
+<p style="margin-left:22%;">IP Adress, defaults
+evaluated</p>
+
+<p style="margin-left:11%;"><b>NETMASK</b></p>
+
+<p style="margin-left:22%;">Network Mask, defaults
+evaluated</p>
+
+<p style="margin-left:11%;"><b>GATEWAY</b></p>
+
+<p style="margin-left:22%;">Default Gateway, defaults
+evaluated</p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="9%">
+
+
+<p><b>DOMAIN</b></p></td>
+<td width="2%"></td>
+<td width="40%">
+
+
+<p>Domain, defaults evaluated</p></td>
+<td width="38%">
+</td></tr>
+</table>
+
+<p style="margin-left:11%;"><b>NAMESERVER</b></p>
+
+<p style="margin-left:22%;">DNS address, defaults
+evaluated</p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="9%">
+
+
+<p><b>MAILTO</b></p></td>
+<td width="2%"></td>
+<td width="73%">
+
+
+<p>Email address to send password to, defaults root</p></td>
+<td width="5%">
+</td></tr>
+</table>
+
+<p style="margin-left:11%;"><b>TIMEZONE</b></p>
+
+<p style="margin-left:22%;">Time Zone, defaults
+evaluated</p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="4%">
+
+
+<p><b>LOG</b></p></td>
+<td width="7%"></td>
+<td width="78%">
+
+
+<p>Log file to output to, defaults install-debian.log</p></td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="4%">
+
+
+<p><b>APT</b></p></td>
+<td width="7%"></td>
+<td width="78%">
+
+
+<p>Package handling utility, defaults aptitude</p></td></tr>
+</table>
+
+<p style="margin-left:11%;"><b>PARTITION</b></p>
+
+<p style="margin-left:22%;">Boolean. If false - manual
+partitioning, defaults true</p>
+
+<h2>FILES
+<a name="FILES"></a>
+</h2>
+
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>/etc/install-debian/install-debian.conf</b></p>
+
+<p style="margin-left:22%;">System wide default config</p>
+
+
+<p style="margin-left:11%;"><b>/etc/install-debian/local.conf</b></p>
+
+<p style="margin-left:22%;">Local config used to override
+settings in default config.</p>
+
+<h2>SEE ALSO
+<a name="SEE ALSO"></a>
+</h2>
+
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>install-debian</b>(8),
+<b>bash</b>(1)</p>
+
+<h2>AUTHORS
+<a name="AUTHORS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Vladimir
+Stavrinov &lt;vstavrinov@gmail.com&gt;</p>
+<hr>
+</body>
+</html>

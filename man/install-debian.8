@@ -18,7 +18,7 @@
 .fam T
 .fi
 .SH DESCRIPTION
-This command line utility install Debian system from within Live CD, Network Boot or any bootable media other then Your system hard disk. It fully support software RAID. Don't start it in running system from hard disk, because it may destroy Your operating system and all data on Your hard disk. Without parameters it install Debian on Your largest hard disk or disk array with default settings. But You will be warned before any changes on the hard disk will be made. For the first time start it with \fB-s\fP options - it show You the defaults values. By default it choose largest disk for installation. If there are more then one such largest disks of the same size, it make RAID array: mirror for 3 and less disks and Level 10 RAID for 4 or more disks. If there are odd number disks in array, one of them become spare disk. Partitioning scheme support separate partition for /boot, and separate logical volume for root filesystem, /usr, /\fIvar\fP and /\fIhome\fP, but for /\fIopt\fP and /\fIsrv\fP only if their size is not zero. Also there are option to install system into single premounted directory. In this case partitioning and mounting every part leave on Your own. After installation root password will be sent to Your mail box. The default and most settings You can change with command line options and configuration variables.
+This command line utility install Debian system from within Live CD, Network Boot or any bootable media other then Your system hard disk. It fully support software RAID. Don't start it in running system from hard disk, because it may destroy Your operating system and all data on Your hard disk. Without parameters it install Debian on Your largest hard disk or disk array with default settings. But You will be warned before any changes on the hard disk will be made. For the first time start it with \fB-s\fP options - it show You the defaults values. By default it choose largest disk for installation. If there are more then one such largest disks of the same size, it make RAID array: mirror for 3 and less disks and Level 10 RAID for 4 or more disks. If there are odd number disks in array, one of them become spare disk. Partitioning scheme support separate partition for /boot, and separate logical volume for root filesystem, /usr, /\fIvar\fP, tmp and /\fIhome\fP, but for /\fIopt\fP and /\fIsrv\fP only if their size is not zero. Also there are option to install system into single premounted directory. In this case partitioning and mounting every part leave on Your own. After installation root password will be sent to Your mail box. The default and most settings You can change with command line options and configuration variables used here as options values.
 .SH OPTIONS
 .TP
 .B
@@ -35,7 +35,7 @@ Raid level (see mdadm), e.g. mirror
 .TP
 .B
 \fB-x\fP \fISPARE\fP
-Number of spare (eXtra) devices, e.g. 2
+Number of spare (eXtra) devices, e.g. 1
 .TP
 .B
 \fB-m\fP \fIMIRROR\fP
@@ -165,10 +165,6 @@ System wide default config
 .B
 /etc/\fBinstall-debian\fP/local.conf
 Local config used to override settings in default config.
-.TP
-.B
-~/.install-debianrc
-User config, override system settings
 .SH SEE ALSO
 \fBinstall-debian.conf\fP(5), \fBmdadm\fP(8), \fBparted\fP(8), \fBdebootstrap\fP(8)
 .SH AUTHORS
