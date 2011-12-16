@@ -33,11 +33,11 @@ OPTIONS
 	-t  Allow untrusted mirror
 	-o BSOPT  Extra debootstrap options, e.g. --no-check-gpg. See debootstrap(8).
 	-R ROOT  Root volume / size, Mb [ 480 ]
-	-U USR  Volume /usr size, Mb [ 3072 ]
-	-B var  Volume /var size, Mb [ 2048 ]
+	-U USR   Volume /usr size, Mb [ 3072 ]
+	-B var   Volume /var size, Mb [ 2048 ]
 	-H home  Volume /home size, Mb [ 1024 ]
-	-O opt  Volume /opt size, Mb [ 0 ]
-	-S srv  Volume /srv size, Mb [ 0 ]
+	-O opt   Volume /opt size, Mb [ 0 ]
+	-S srv   Volume /srv size, Mb [ 0 ]
 	-I ADDRESS  IP Address, e.g. 10.0.0.254
 	-M NETMASK  Network Mask, e.g. 255.255.255.0
 	-G GATEWAY  Default Gateway, e.g. 10.0.0.1
@@ -46,7 +46,7 @@ OPTIONS
 	-E NAMESERVER  DNS address, e.g. 10.0.0.2
 	-T MAILTO  Email address to send password to, e.g. root@localhost
 	-Z TIMEZONE  Time Zone, e.g. Europe/Moscow
-	-L LOG  Log file to output to [ install-debian.log ]
+	-L LOG   Log file to output to [ install-debian.log ]
 	-l  Logging output to file [ install-debian.log ]
 	-p  Manual partitioning and mount under /mnt before install
 	-n  No warning dialog. Start immediately non-interactive.
