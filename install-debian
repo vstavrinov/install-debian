@@ -225,10 +225,12 @@ usage ()
 	Help
     
     Files:
-    /etc/$SELF_NAME.conf
+    /etc/$SELF_NAME/$SELF_NAME.conf
 	System wide config
-    ~/.${SELF_NAME}rc
-	User config, override system settings
+    /etc/$SELF_NAME/local.conf
+	Local config, override system settings
+    /etc/$SELF_NAME/install/
+        Everything from this directory will be copied to the root of new system as related path
     "
     exit
 }
