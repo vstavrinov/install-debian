@@ -10,9 +10,9 @@ install-debian [-lctvdh] [-D DEVICE | -A ARRAY] [-r LEVEL] [-x SPARE]
 		[-T MAILTO] [-Z TIMEZONE] [-L LOG]
 
 DESCRIPTION
-This command line utility installs Debian system. It should be started from within Live CD, Network Boot or from any bootable media, other then Your system disk. Don't start it in running system from hard disk, because it may destroy Your operating system and all data on Your hard disk. It fully supports software RAID.
+This command line utility should be started from within Live CD, Network Boot or from any bootable media, other then Your system disk. Don't start it in running system from hard disk, because it may destroy Your operating system and all data on Your hard disk. It fully supports software RAID.
 
-Without parameters it installs Debian onto Your largest hard disk or disk array with default settings. But You will be warned before to do any changes on the hard disk. For the first time start it with -s option - it shows You the defaults values. By default it chooses largest disk for installation. If there are more then one such largest disk of the same size, it makes RAID array: mirror from 3 and less disks and Level 10 RAID from 4 or more disks. If there are odd disks number in array, one of them becomes spare disk.
+Without parameters it installs Debian onto Your largest hard disk or disk array with default settings. But You will be warned before to do any changes on the hard disk. Before actual installation use -s option to see all variables values set by default, with command line option or in config file. By default it chooses largest disk for installation. If there are more then one such largest disk of the same size, it makes RAID array: mirror from 3 and less disks and Level 10 RAID from 4 or more disks. If there are odd disks number in array, one of them becomes spare disk.
 
 Partitioning scheme supports separate partition for /boot, and separate logical volumes for root filesystem, /usr, /var, tmp and /home, but for /opt and /srv only if their size is not zero. Also there are option to install system into single pre-mount point. In this case partitioning and mounting every part leave on Your own. After installation root password will be sent to Your mail box. You can change defaults and most settings with command line options and configuration variables, used here as option's values.
 
@@ -62,6 +62,9 @@ FILES
 
 /etc/install-debian/local.conf  
 	Local config used to override settings in default config.
+
+/etc/install-debian/install/  
+	Everything from this directory will be copied to the root of new system as related path
 
 SEE ALSO
 install-debian.conf(5), mdadm(8), parted(8), debootstrap(8)

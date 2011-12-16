@@ -1,0 +1,2 @@
+install-debian		usr/sbin
+install-debian.conf	etc/install-debian
