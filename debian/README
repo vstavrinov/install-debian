@@ -1,7 +1,7 @@
 The Debian Package install-debian
 ----------------------------
 
-This shell script intended for using with Live, Network Boot or any bootable
+This shell script intended for using with Live CD, Network Boot or any bootable
 media other then Your system disk where You are going to install the new system
 to.  Don't run it withing running Debian System from hard disk - You may
 destroy operating system and all data on the disk.
