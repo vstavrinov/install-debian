@@ -22,7 +22,7 @@ Description: This command line utility installs Debian system non-interactively
  By default it chooses largest disk for installation. If there are more then
  one such disk of the same size, it makes RAID array. Partitioning scheme
  supports separate partition for /boot, and separate logical volumes for root
- filesystem, /usr, /var, tmp and /home. Also there are option to install system
+ filesystem, /usr, /var, /tmp and /home. Also there are option to install system
  into single pre-mount point. In this case partitioning and mounting every part
  leave on Your own.
  .
