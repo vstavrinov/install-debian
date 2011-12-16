@@ -1,15 +1,31 @@
 Source: install-debian
-Section: unknown
-Priority: extra
+Section: admin
+Priority: optional
 Maintainer: Vladimir Stavrinov <vstavrinov@gmail.com>
 Build-Depends: debhelper (>= 8.0.0)
 Standards-Version: 3.9.2
-Homepage: <insert the upstream URL, if relevant>
+Homepage: http://sourceforge.net/projects/install-debian/
 #Vcs-Git: git://git.debian.org/collab-maint/install-debian.git
 #Vcs-Browser: http://git.debian.org/?p=collab-maint/install-debian.git;a=summary
 
 Package: install-debian
 Architecture: all
-Depends: ${misc:Depends}
-Description: <insert up to 60 chars description>
- <insert long description, indented with spaces>
+Depends: ${misc:Depends}, debootstrap, dialog, dmraid, gawk, grub-pc, lvm2, mdadm, parted, aptitude
+Description: This command line utility installs Debian system non-interactively
+ It should be started from within Live CD, Network Boot or from any bootable
+ media, other then Your system disk. It fully supports software RAID. You can
+ change defaults and most settings with command line options and configuration
+ variables. All settings if not defined in config file or as command line
+ options, will bet set to it's defaults either as constant values or evaluated
+ from running system.
+ .
+ By default it chooses largest disk for installation. If there are more then
+ one such disk of the same size, it makes RAID array. Partitioning scheme
+ supports separate partition for /boot, and separate logical volumes for root
+ filesystem, /usr, /var, tmp and /home. Also there are option to install system
+ into single pre-mount point. In this case partitioning and mounting every part
+ leave on Your own.
+ .
+ This script installs only bit more packages then base system includes. The
+ main purpose is to get bootable system. After booting new system You can
+ install everything what You want.

@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.21 -->
-<!-- CreationDate: Thu Dec 15 14:05:25 2011 -->
+<!-- CreationDate: Fri Dec 16 11:12:34 2011 -->
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -69,24 +69,23 @@
 
 
 <p style="margin-left:11%; margin-top: 1em">This command
-line utility installs Debian system. It should be started
-from within Live CD, Network Boot or from any bootable
-media, other then Your system disk. Don&rsquo;t start it in
-running system from hard disk, because it may destroy Your
-operating system and all data on Your hard disk. It fully
-supports software RAID.</p>
+line utility should be started from within Live CD, Network
+Boot or from any bootable media, other then Your system
+disk. Don&rsquo;t start it in running system from hard disk,
+because it may destroy Your operating system and all data on
+Your hard disk. It fully supports software RAID.</p>
 
 <p style="margin-left:11%; margin-top: 1em">Without
 parameters it installs Debian onto Your largest hard disk or
 disk array with default settings. But You will be warned
-before to do any changes on the hard disk. For the first
-time start it with <b>-s</b> option - it shows You the
-defaults values. By default it chooses largest disk for
-installation. If there are more then one such largest disk
-of the same size, it makes RAID array: mirror from 3 and
-less disks and Level 10 RAID from 4 or more disks. If there
-are odd disks number in array, one of them becomes spare
-disk.</p>
+before to do any changes on the hard disk. Before actual
+installation use <b>-s</b> option to see all variables
+values set by default, with command line option or in config
+file. By default it chooses largest disk for installation.
+If there are more then one such largest disk of the same
+size, it makes RAID array: mirror from 3 and less disks and
+Level 10 RAID from 4 or more disks. If there are odd disks
+number in array, one of them becomes spare disk.</p>
 
 <p style="margin-left:11%; margin-top: 1em">Partitioning
 scheme supports separate partition for /boot, and separate
@@ -268,7 +267,7 @@ linux-image-<i>KERNEL</i>, e.g. amd64</p>
 
 <p style="margin-left:11%;"><b>-I</b> <i>ADDRESS</i></p>
 
-<p style="margin-left:22%;">IP Adress, e.g. 10.0.0.254</p>
+<p style="margin-left:22%;">IP Address, e.g. 10.0.0.254</p>
 
 <p style="margin-left:11%;"><b>-M</b> <i>NETMASK</i></p>
 

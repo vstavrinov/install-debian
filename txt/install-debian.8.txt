@@ -1,0 +1,70 @@
+NAME
+install-debian - Install Debian system non-interactively.
+
+SYNOPSIS
+install-debian [-lctvdh] [-D DEVICE | -A ARRAY] [-r LEVEL] [-x SPARE]
+		[-R ROOT] [-U USR] [-B var] [-H home] [-O opt] [-S srv]
+		[-m MIRROR] [-u SUITE] [-a ARCH] [-o BSOPT] [-K KERNEL]
+		[-I ADDRESS] [-M NETMASK] [-G GATEWAY]
+		[-N HOSTNAME] [-P DOMAIN] [-E NAMESERVER]
+		[-T MAILTO] [-Z TIMEZONE] [-L LOG]
+
+DESCRIPTION
+This command line utility installs Debian system. It should be started from within Live CD, Network Boot or from any bootable media, other then Your system disk. Don't start it in running system from hard disk, because it may destroy Your operating system and all data on Your hard disk. It fully supports software RAID.
+
+Without parameters it installs Debian onto Your largest hard disk or disk array with default settings. But You will be warned before to do any changes on the hard disk. For the first time start it with -s option - it shows You the defaults values. By default it chooses largest disk for installation. If there are more then one such largest disk of the same size, it makes RAID array: mirror from 3 and less disks and Level 10 RAID from 4 or more disks. If there are odd disks number in array, one of them becomes spare disk.
+
+Partitioning scheme supports separate partition for /boot, and separate logical volumes for root filesystem, /usr, /var, tmp and /home, but for /opt and /srv only if their size is not zero. Also there are option to install system into single pre-mount point. In this case partitioning and mounting every part leave on Your own. After installation root password will be sent to Your mail box. You can change defaults and most settings with command line options and configuration variables, used here as option's values.
+
+Default allocation of disk space is minimalistic, but You can expand filesystems size at any time using lvextend and resize2fs utilities - this give You flexibility and efficiency using disk space. Though in most cases You don't need expand root filesystem, /boot and /usr, but if it is not case, then it is likely doesn't comply Filesystem Hierarchy Standard: http://www.pathname.com/fhs/ and You should move some of Your data to somewhere else. The size of / and /boot filesystems should be minimal for a reliability reasons.
+
+This script installs only bit more packages then base system includes. The main purpose is to get bootable system. After booting new system You can install everything what You want.
+
+OPTIONS
+	-D DEVICE  Disk to install to, e.g. /dev/sda
+	-A ARRAY  Quoted list of RAID components separated by space, e.g. "/dev/sda /dev/sdb"
+	-r LEVEL  Raid level (see mdadm), e.g. mirror
+	-x SPARE  Number of spare (eXtra) devices, e.g. 1
+	-m MIRROR  URL to install from, e.g. http://cdn.debian.org/debian
+	-u SUITE  Distribution (suite), e.g. unstable
+	-a ARCH  Architecture, e.g. amd64
+	-K KERNEL  Define kernel package as linux-image-KERNEL, e.g. amd64
+	-c  Use cdebootstrap instead of debootstrap
+	-t  Allow untrusted mirror
+	-o BSOPT  Extra debootstrap options, e.g. --no-check-gpg. See debootstrap(8).
+	-R ROOT  Root volume / size, Mb [ 480 ]
+	-U USR  Volume /usr size, Mb [ 3072 ]
+	-B var  Volume /var size, Mb [ 2048 ]
+	-H home  Volume /home size, Mb [ 1024 ]
+	-O opt  Volume /opt size, Mb [ 0 ]
+	-S srv  Volume /srv size, Mb [ 0 ]
+	-I ADDRESS  IP Address, e.g. 10.0.0.254
+	-M NETMASK  Network Mask, e.g. 255.255.255.0
+	-G GATEWAY  Default Gateway, e.g. 10.0.0.1
+	-N HOSTNAME  Host Name, e.g. atlant
+	-P DOMAIN  Domain, e.g. land.oz
+	-E NAMESERVER  DNS address, e.g. 10.0.0.2
+	-T MAILTO  Email address to send password to, e.g. root@localhost
+	-Z TIMEZONE  Time Zone, e.g. Europe/Moscow
+	-L LOG  Log file to output to [ install-debian.log ]
+	-l  Logging output to file [ install-debian.log ]
+	-p  Manual partitioning and mount under /mnt before install
+	-n  No warning dialog. Start immediately non-interactive.
+	-s  Do nothing, but show variables values only. Strongly recommended for using before doing anything else.
+	-V  Version
+	-v  Verbose
+	-d  Debug
+	-h  Help
+
+FILES
+/etc/install-debian/install-debian.conf  
+	System wide default config
+
+/etc/install-debian/local.conf  
+	Local config used to override settings in default config.
+
+SEE ALSO
+install-debian.conf(5), mdadm(8), parted(8), debootstrap(8)
+
+AUTHORS
+Vladimir Stavrinov <vstavrinov@gmail.com>
