@@ -16,7 +16,7 @@ Description: This command line utility installs Debian system non-interactively
  media, other then Your system disk. It fully supports software RAID. You can
  change defaults and most settings with command line options and configuration
  variables. All settings if not defined in config file or as command line
- options, will bet set to it's defaults either as constant values or evaluated
+ options, will be set to it's defaults either as constant values or evaluated
  from running system.
  .
  By default it chooses largest disk for installation. If there are more then
