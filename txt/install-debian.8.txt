@@ -56,6 +56,9 @@ OPTIONS
 	-d  Debug
 	-h  Help
 
+CAVEATS
+There may be problems when installing system onto disks with existing partitions, md devices and logical volumes. In this case, if script fails and exits with error, reboot the system and try again.
+
 FILES
 /etc/install-debian/install-debian.conf  
 	System wide default config
