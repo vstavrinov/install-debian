@@ -5,7 +5,7 @@
 # License: latest GPL at http://www.gnu.org/licenses/
 #set -x -v
 
-VERSION=2.1.2
+VERSION=2.1.3
 if [ $(id -u) -ne 0 ]; then
 	echo "
 	Your should be root to run this script.
@@ -24,6 +24,7 @@ unset DEVICE || true
 unset CREATE || true
 unset ARRAY || true
 unset LEVEL || true
+unset FS_TYPE || true
 unset DOMAIN || true
 unset GATEWAY || true
 unset HOSTNAME
@@ -106,6 +107,7 @@ MIRROR=${MIRROR:=$(awk '/^deb / {LN++; if (LN == 1) print $2}' /etc/apt/sources.
 ARCH=${ARCH:=$(dpkg --print-architecture)}
 #SUITE=${SUITE:="sid"}
 SUITE=${SUITE:="unstable"}
+FS_TYPE=${FS_TYPE:=ext4}
 ROOT=${ROOT:=$(((modules_size*kernels_number+base_size)*15/10))}
 BOOT=${BOOT:=$(((kernel_lize*kernels_number+loader_size)*15/10))}
 TMP=${TMP:=448}
@@ -866,14 +868,14 @@ if $PARTITION; then
 	done
 	if [ ${#ARRAY[@]} -lt 4 ] || [ "$LEVEL" = "mirror" ]; then
 		for POINT in ${PART}2 ${PART}3;  do
-			mkfs $VERBOSE -L $(basename $POINT) -t ext3 $POINT
+			mkfs $VERBOSE -L $(basename $POINT) -t $FS_TYPE $POINT
 		done
 	else
 		lvcreate $VERBOSE -L $ROOT -n top $GROUP
-		mkfs $VERBOSE -L boot -t ext3 $CORE
+		mkfs $VERBOSE -L boot -t $FS_TYPE $CORE
 	fi
 	for POINT in /dev/$GROUP/*; do
-		mkfs $VERBOSE -L $(basename $POINT) -t ext3 $POINT
+		mkfs $VERBOSE -L $(basename $POINT) -t $FS_TYPE $POINT
 	done
 
 	######################################
@@ -912,23 +914,23 @@ if $PARTITION; then
 		if [ -n "$DMRAID" ] || [ -n "$MDADM" ] || 
 			[ ${#ARRAY[@]} -gt 1 ]; then
 			FSTAB="${FSTAB}
-			${PART}3 / ext3 defaults,errors=remount-ro 0 1
-			${PART}2 /boot ext3 defaults 0 2"
+			${PART}3 / $FS_TYPE defaults,errors=remount-ro 0 1
+			${PART}2 /boot $FS_TYPE defaults 0 2"
 		else
 			FSTAB="${FSTAB}
-			UUID=$ROOT_ID / ext3 defaults,errors=remount-ro 0 1
-			UUID=$BOOT_ID /boot ext3 defaults 0 2"
+			UUID=$ROOT_ID / $FS_TYPE defaults,errors=remount-ro 0 1
+			UUID=$BOOT_ID /boot $FS_TYPE defaults 0 2"
 		fi
 	else
 		FSTAB="${FSTAB}
-		/dev/$GROUP/top / ext3 defaults,errors=remount-ro 0 1
-		$CORE /boot ext3 defaults 0 2"
+		/dev/$GROUP/top / $FS_TYPE defaults,errors=remount-ro 0 1
+		$CORE /boot $FS_TYPE defaults 0 2"
 	fi
 	for POINT in /dev/$GROUP/*; do
 		if [ -d "${TARGET}/$(basename ${POINT})" ]; then
 			mount $VERBOSE $POINT ${TARGET}/$(basename ${POINT})
 			FSTAB="${FSTAB}
-	$POINT /$(basename ${POINT}) ext3 defaults 0 2"
+	$POINT /$(basename ${POINT}) $FS_TYPE defaults 0 2"
 		fi
 	done
 	FSTAB="${FSTAB}
