@@ -25,7 +25,7 @@ OPTIONS
 	-A ARRAY  Quoted list of RAID components separated by space, e.g. "/dev/sda /dev/sdb"
 	-r LEVEL  Raid level (see mdadm), e.g. mirror
 	-x SPARE  Number of spare (eXtra) devices, e.g. 1
-	-m MIRROR  URL to install from, e.g. http://cdn.debian.org/debian
+	-m MIRROR  URL to install from, e.g. http://cdn.debian.org/debian or file:/srv/debian
 	-u SUITE  Distribution (suite), e.g. unstable
 	-a ARCH  Architecture, e.g. amd64
 	-K KERNEL  Define kernel package as linux-image-KERNEL, e.g. amd64
