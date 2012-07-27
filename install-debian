@@ -5,7 +5,7 @@
 # License: latest GPL at http://www.gnu.org/licenses/
 #set -x -v
 
-VERSION=2.1.3
+VERSION=2.1.4
 if [ $(id -u) -ne 0 ]; then
 	echo "
 	Your should be root to run this script.
@@ -1009,11 +1009,11 @@ gawk "{printf(\"%-${W1}s%-${W2}s%-${W3}s%-${W4}s%-${W5}s%-${W6}s\n\",
 		\$1, \$2, \$3, \$4, \$5, \$6);}" > ${TARGET}/etc/fstab
 
 echo "
-auto lo eth0
+auto lo $IFACE
 
 iface lo inet loopback
 
-iface eth0 inet static
+iface $IFACE inet static
     address $ADDRESS
     netmask $NETMASK
     gateway $GATEWAY
@@ -1041,10 +1041,6 @@ deb $MIRROR $SUITE main contrib non-free
 " > ${TARGET}/etc/apt/sources.list
 
 cp $VERBOSE -a ${TARGET}/etc/profile{,.dpkg-dist}
-echo "
-
-PATH=/opt/bin:\$PATH
-" >> ${TARGET}/etc/profile
 
 echo "
 do_symlinks = No
@@ -1095,6 +1091,7 @@ ATTACHMENTS="
 /etc/lynx-cur/local.cfg 644
 /etc/network/inactive 600
 /etc/network/iptables 600
+/etc/nginx/php-cgi
 /etc/nginx/sites-available/000 644
 /etc/profile.d/local.sh 644
 /etc/skel/.lynxrc 644
@@ -1177,6 +1174,8 @@ export DEBIAN_FRONTEND="noninteractive"
 #export DEBCONF_PRIORITY="critical"
 
 #echo -e \\\\t |
+type -p $APT ||
+APT=apt-get
 $APT $VERBOSE $APT_OPTIONS -y update
 $APT $VERBOSE $APT_OPTIONS -y install \$MAIN_LIST
 
@@ -1729,7 +1728,7 @@ export EDITOR=vim
 :FORWARD DROP [0:0]
 :OUTPUT ACCEPT [0:0]
 
--A INPUT ! -i eth0 -m state --state NEW -j ACCEPT
+-A INPUT ! -i $IFACE -m state --state NEW -j ACCEPT
 -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 -A INPUT -p tcp -m tcp --dport 80 -j ACCEPT
 -A INPUT -p tcp -m tcp --dport 443 -j ACCEPT
@@ -1745,8 +1744,8 @@ COMMIT
 :PREROUTING ACCEPT [0:0]
 :POSTROUTING ACCEPT [0:0]
 :OUTPUT ACCEPT [0:0]
-#-A POSTROUTING -o eth0 -j SNAT --to-source 172.17.17.17
-#-A POSTROUTING -d 192.168.100.0/24 -o eth0 -m policy --dir out --pol ipsec -j ACCEPT
+#-A POSTROUTING -o $IFACE -j SNAT --to-source 172.17.17.17
+#-A POSTROUTING -d 192.168.100.0/24 -o $IFACE -m policy --dir out --pol ipsec -j ACCEPT
 #-A PREROUTING -p tcp -m tcp --dport 9104 -j DNAT --to-destination 172.16.69.3:9102
 COMMIT
 
@@ -1957,9 +1956,7 @@ server {
         root /var/www;
         index index.php index.shtml index.html;
         location ~ \.php$ {
-                fastcgi_pass 127.0.0.1:9000;
-                fastcgi_index index.php;
-                include fastcgi_params;
+                include php-cgi;
         }
         location /cgi-bin {
                 root /usr/lib;
@@ -2034,6 +2031,25 @@ case "$1" in
 esac
 exit $RETVAL
 ###  END /etc/init.d/php-fastcgi  ###
+
+###  BEGIN /etc/nginx/php-cgi  ###
+                fastcgi_pass unix:/var/run/php5-fpm.sock;
+                fastcgi_index index.php;
+                include fastcgi_params;
+                fastcgi_param HTTP_X_FORWARDED_FOR $proxy_add_x_forwarded_for;
+                #fastcgi_param HTTP_X_FORWARDED_FOR $remote_addr;
+                #real_ip_header X-Forwarded-For;
+                fastcgi_param php_admin_value "
+                        upload_max_filesize=1032m
+                        post_max_size=1032m
+                        allow_call_time_pass_reference=on
+                        register_globals=off
+                        magic_quotes_gpc=off
+                        display_errors=on
+                ";
+
+# vim: filetype=nginx
+###  END /etc/nginx/php-cgi  ###
 
 ###  BEGIN   ###
 ###  END   ###
