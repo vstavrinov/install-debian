@@ -5,7 +5,7 @@
 # License: latest GPL at http://www.gnu.org/licenses/
 #set -x -v
 
-VERSION=2.1.5
+VERSION=2.1.6
 if [ $(id -u) -ne 0 ]; then
 	echo "
 	Your should be root to run this script.
@@ -108,7 +108,7 @@ MIRROR=${MIRROR:=$(awk '/^deb / {LN++; if (LN == 1) print $2}' /etc/apt/sources.
 #MIRROR=${MIRROR:=ftp://mirror.yandex.ru/debian}
 ARCH=${ARCH:=$(dpkg --print-architecture)}
 #SUITE=${SUITE:="sid"}
-SUITE=${SUITE:="unstable"}
+SUITE=${SUITE:="stable"}
 FS_TYPE=${FS_TYPE:=ext4}
 ROOT=${ROOT:=$(((modules_size*kernels_number+base_size)*15/10))}
 BOOT=${BOOT:=$(((kernel_lize*kernels_number+loader_size)*15/10))}
@@ -1967,6 +1967,7 @@ server {
                 include fastcgi_params;
         }
 }
+# vim: filetype=nginx
 ###  END /etc/nginx/sites-available/000  ###
 
 ###  BEGIN /etc/init.d/php-fastcgi  ###
