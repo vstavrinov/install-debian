@@ -1,3 +1,9 @@
+install-debian (2.1.8) unstable; urgency=low
+
+  * Don't call mdadm if not installed.
+
+ -- Vladimir Stavrinov <vstavrinov@gmail.com>  Mon, 22 Jul 2013 17:00:52 +0400
+
 install-debian (2.1.7) unstable; urgency=low
 
   * Update Standards-Version: to 3.9.4
