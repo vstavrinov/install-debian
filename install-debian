@@ -5,7 +5,7 @@
 # License: latest GPL at http://www.gnu.org/licenses/
 #set -x -v
 
-VERSION=2.1.6
+VERSION=2.1.8
 if [ $(id -u) -ne 0 ]; then
 	echo "
 	Your should be root to run this script.
@@ -1343,6 +1343,7 @@ echo "Installing boot loader ..."
 SLEEP=10
 CYCLE=12
 
+[ -n "$MDADM" ] &&
 mdadm -D $DEVICE && 
 while ! mdadm -D $DEVICE | grep -q "State : clean" && [ $((CYCLE--)) -gt 0 ]; do
 	sleep \$SLEEP
@@ -1352,6 +1353,7 @@ while ! mdadm -D $DEVICE | grep -q "State : clean" && [ $((CYCLE--)) -gt 0 ]; do
 	fi
 done
 if [ ${#ARRAY[@]} -lt 4 ] || [ "$LEVEL" = "mirror" ]; then
+	[ -n "$MDADM" ] &&
 	mdadm -D $DEVICE && 
 	echo "(md0) $DEVICE" > /boot/grub/device.map
 	grub-install $DEVICE
