@@ -5,15 +5,15 @@
 # License: latest GPL at http://www.gnu.org/licenses/
 #set -x -v
 
-VERSION=2.1.8
-if [ $(id -u) -ne 0 ]; then
+VERSION=2.1.9
+if [ $(id -u ) -ne 0 ]; then
 	echo "
 	Your should be root to run this script.
 	"
 	exit
 fi
 
-SELF_NAME=$(basename $0)
+SELF_NAME=$(basename $0 )
 
 unset ADDRESS || true
 unset APT || true
@@ -47,7 +47,7 @@ unset srv || true
 unset var || true
 
 
-LOG=${LOG:=${SELF_NAME}.log}
+: ${LOG:=${SELF_NAME}.log}
 
 [ -r /etc/$SELF_NAME/$SELF_NAME.conf ] && . /etc/$SELF_NAME/$SELF_NAME.conf
 [ -r /etc/$SELF_NAME/local.conf ] && . /etc/$SELF_NAME/local.conf
@@ -64,7 +64,7 @@ CS=$((512*63*255))
 
 
 export DEBIAN_FRONTEND="noninteractive"
-APT=${APT:=aptitude}
+: ${APT:=aptitude}
 
 ####################
 ## INIT VARIABLES ##
@@ -84,7 +84,7 @@ if [ -z "$DEVICE" ] && [ -z $ARRAY ]; then
 		END {
 			print DEVICE
 		}
-	' /proc/partitions)
+	' /proc/partitions )
 	SIZE=$(gawk -v DEVICE=${DEVICE//\//\\/} '{
 				if ($4 == DEVICE) print $3
 				}' /proc/partitions)
@@ -102,40 +102,41 @@ elif [ -n "$DEVICE" ] && [ -z $ARRAY ]; then
 	CREATE=false
 fi
 
-PARTITION=${PARTITION:=true}
-MIRROR=${MIRROR:=$(awk '/^deb / {LN++; if (LN == 1) print $2}' /etc/apt/sources.list)}
-#MIRROR=${MIRROR:=file:/srv/debian}
-#MIRROR=${MIRROR:=ftp://mirror.yandex.ru/debian}
-ARCH=${ARCH:=$(dpkg --print-architecture)}
-#SUITE=${SUITE:="sid"}
-SUITE=${SUITE:="stable"}
-FS_TYPE=${FS_TYPE:=ext4}
-ROOT=${ROOT:=$(((modules_size*kernels_number+base_size)*15/10))}
-BOOT=${BOOT:=$(((kernel_lize*kernels_number+loader_size)*15/10))}
-TMP=${TMP:=448}
-USR=${USR:=3072}
-var=${var:=2048}
-home=${home:=1024}
-opt=${opt:=0}
-srv=${srv:=0}
+: ${PARTITION:=true}
+: ${MIRROR:=$(awk '/^deb / {LN++; if (LN == 1) print $2}' /etc/apt/sources.list)}
+#: ${MIRROR:=file:/srv/debian}
+#: ${MIRROR:=ftp://mirror.yandex.ru/debian}
+: ${ARCH:=$(dpkg --print-architecture )}
+#: ${SUITE:="sid"}
+: ${SUITE:="stable"}
+: ${FS_TYPE:=ext4}
+: ${ROOT:=$(((modules_size*kernels_number+base_size)*15/10))}
+: ${BOOT:=$(((kernel_lize*kernels_number+loader_size)*15/10))}
+: ${TMP:=448}
+: ${USR:=3072}
+: ${var:=2048}
+: ${home:=1024}
+: ${opt:=0}
+: ${srv:=0}
 LIMIT=400
 RATE=5
 SHIFT=2
-IFACE=$(route -n | awk '/^0.0.0.0/ {print $8}')
-ADDRESS=${ADDRESS:=$(ifconfig $IFACE | awk '/inet addr:/ {print $2}' | cut -d: -f2)}
-NETMASK=${NETMASK:=$(ifconfig $IFACE | awk '/inet addr:/ {print $4}' | cut -d: -f2)}
-GATEWAY=${GATEWAY:=$(route -n | awk '/^0.0.0.0/ {print $2}')}
-HOSTNAME=${HOSTNAME:=$(hostname)}
-DOMAIN=${DOMAIN:=$(domainname -d)}
-NAMESERVER=${NAMESERVER:=$(awk '/^[[:blank:]]*nameserver/ {print $2}' /etc/resolv.conf | head -1)}
-MAILTO=${MAILTO:=root}
-TIMEZONE=${TIMEZONE:=$([ -f /etc/timezone ] && cat /etc/timezone)}
+IFACE=$(route -n | awk '/^0.0.0.0/ {print $8}' )
+: ${ADDRESS:=$(ifconfig $IFACE | awk '/inet addr:/ {print $2}' | cut -d: -f2)}
+: ${NETMASK:=$(ifconfig $IFACE | awk '/inet addr:/ {print $4}' | cut -d: -f2)}
+: ${GATEWAY:=$(route -n | awk '/^0.0.0.0/ {print $2}')}
+: ${HOSTNAME:=$(hostname)}
+: ${DOMAIN:=$(domainname -d)}
+: ${DOMAIN:="oz"}
+: ${NAMESERVER:=$(awk '/^[[:blank:]]*nameserver/ {print $2}' /etc/resolv.conf | head -1)}
+: ${MAILTO:=root}
+: ${TIMEZONE:=$([ -f /etc/timezone ] && cat /etc/timezone)}
 SHOW=false
 DEBUG=false
 NO_WARNING=false
 LOGGING=false
-TARGET=/mnt
-DEBOOTSTRAP=debootstrap
+TARGET="/mnt"
+DEBOOTSTRAP="debootstrap"
 
 if [ "$ARCH" = "i386" ]; then
 	if [ $(free -g | awk '/^Mem: / {print $2}') -ge 3 ]; then
@@ -932,7 +933,7 @@ if $PARTITION; then
 		if [ -d "${TARGET}/$(basename ${POINT})" ]; then
 			mount $VERBOSE $POINT ${TARGET}/$(basename ${POINT})
 			FSTAB="${FSTAB}
-	$POINT /$(basename ${POINT}) $FS_TYPE defaults 0 2"
+	$POINT /$(basename ${POINT} ) $FS_TYPE defaults 0 2"
 		fi
 	done
 	FSTAB="${FSTAB}
@@ -960,7 +961,7 @@ else # if $PARTITION
 	parted -sm $DEVICE print |
 	awk -F: -v PART=$PART '/swap/ {print PART$1, "none swap sw 0 0"}'
 	)"
-	ROOT_DEVICE=$(awk -v TARGET=$TARGET '{if ($2 == TARGET) print $1}' /proc/mounts)
+	ROOT_DEVICE=$(awk -v TARGET=$TARGET '{if ($2 == TARGET) print $1}' /proc/mounts )
 fi # if $PARTITION
 FSTAB="${FSTAB}
 sysfs /sys sysfs defaults 0 0"
