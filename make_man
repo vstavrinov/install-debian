@@ -18,5 +18,5 @@ for TXT in $TXTBASE/*.[1-8].txt; do
 	man -Hcat $MANBASE/$MAN > $HTMLBASE/$MAN.html
 done
 git add man/*.[1-8] html/*.[1-8].html
-git commit
+#git commit
 

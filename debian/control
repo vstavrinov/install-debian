@@ -10,14 +10,14 @@ Homepage: http://sourceforge.net/projects/install-debian/
 
 Package: install-debian
 Architecture: all
-Depends: ${misc:Depends}, debootstrap, dialog, dmraid, gawk, grub-pc, lvm2, mdadm, parted, aptitude
+Depends: ${misc:Depends}, debootstrap, dialog, dmraid, gawk, grub-pc-bin, grub-efi, lvm2, mdadm, parted, aptitude
 Description: This command line utility installs Debian system non-interactively
  It should be started from within Live CD, Network Boot or from any bootable
- media, other then Your system disk. It fully supports software RAID. You can
- change defaults and most settings with command line options and configuration
- variables. All settings if not defined in config file or as command line
- options, will be set to it's defaults either as constant values or evaluated
- from running system.
+ media, other then Your system disk. It fully supports software RAID and UEFI
+ boot. You can change defaults and most settings with command line options and
+ configuration variables. All settings if not defined in config file or as
+ command line options, will be set to it's defaults either as constant values
+ or evaluated from running system.
  .
  By default it chooses largest disk for installation. If there are more then
  one such disk of the same size, it makes RAID array. Partitioning scheme
