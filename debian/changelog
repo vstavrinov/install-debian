@@ -1,3 +1,9 @@
+install-debian (2.1.10) unstable; urgency=medium
+
+  * Added UEFI boot support. Increased reserved space.
+
+ -- Vladimir Stavrinov <vstavrinov@gmail.com>  Tue, 04 Feb 2014 16:05:06 +0400
+
 install-debian (2.1.9) unstable; urgency=low
 
   *  Set default value for domain name to "oz".  
