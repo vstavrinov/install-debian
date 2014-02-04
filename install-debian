@@ -5,7 +5,7 @@
 # License: latest GPL at http://www.gnu.org/licenses/
 #set -x -v
 
-VERSION=2.1.9
+VERSION=2.2.1
 if [ $(id -u ) -ne 0 ]; then
 	echo "
 	Your should be root to run this script.
@@ -54,7 +54,7 @@ unset var || true
 
 
 kernels_number=4
-kernel_lize=16
+kernel_size=16
 modules_size=64
 loader_size=8
 base_size=64
@@ -111,7 +111,7 @@ fi
 : ${SUITE:="stable"}
 : ${FS_TYPE:=ext4}
 : ${ROOT:=$(((modules_size*kernels_number+base_size)*15/10))}
-: ${BOOT:=$(((kernel_lize*kernels_number+loader_size)*15/10))}
+: ${BOOT:=$(((kernel_size*kernels_number+loader_size)*15/10))}
 : ${TMP:=448}
 : ${USR:=3072}
 : ${var:=2048}
@@ -119,7 +119,7 @@ fi
 : ${opt:=0}
 : ${srv:=0}
 LIMIT=400
-RATE=5
+RATE=20
 SHIFT=2
 IFACE=$(route -n | awk '/^0.0.0.0/ {print $8}' )
 : ${ADDRESS:=$(ifconfig $IFACE | awk '/inet addr:/ {print $2}' | cut -d: -f2)}
@@ -1128,7 +1128,8 @@ if ! [ -d /run/lock ]; then
 	chmod ugo+wt /run/lock
 fi
 MAIN_LIST="
-grub-pc
+grub-pc-bin
+grub-efi
 lvm2
 gawk
 parted
@@ -1357,12 +1358,15 @@ if [ ${#ARRAY[@]} -lt 4 ] || [ "$LEVEL" = "mirror" ]; then
 	[ -n "$MDADM" ] &&
 	mdadm -D $DEVICE && 
 	echo "(md0) $DEVICE" > /boot/grub/device.map
-	grub-install $DEVICE
+	grub-install --target=\$(basename /usr/lib/grub/*-efi) $DEVICE
 else
 	for MEMBER in ${ARRAY[@]}; do
-		grub-install \$MEMBER
+		grub-install --target=\$(basename /usr/lib/grub/*-efi) \$MEMBER
 	done
 fi
+cp -a /usr/lib/grub/*-pc /boot/grub
+mkdir -p /boot/efi/boot
+cp -a /boot/grub/grub.efi /boot/efi/boot/boot$(arch | sed 's/^?\(.*\_\)\(.*\)/x\2/').efi
 update-grub
 umount $VERBOSE -a
 umount $VERBOSE /sys
