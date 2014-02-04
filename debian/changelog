@@ -1,3 +1,11 @@
+install-debian (2.2.1) unstable; urgency=medium
+
+  * Added UEFI boot support. Increased reserved space.
+  * Update changelog for 2.1.10 release
+  * Upgrade Standards-Version:
+
+ -- Vladimir Stavrinov <vstavrinov@gmail.com>  Tue, 04 Feb 2014 16:12:29 +0400
+
 install-debian (2.2.0) unstable; urgency=medium
 
   * Added UEFI boot support. Increased reserved space.
