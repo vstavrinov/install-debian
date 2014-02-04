@@ -1,4 +1,4 @@
-install-debian (2.1.10) unstable; urgency=medium
+install-debian (2.2.0) unstable; urgency=medium
 
   * Added UEFI boot support. Increased reserved space.
 
