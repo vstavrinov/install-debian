@@ -1,3 +1,9 @@
+install-debian (2.2.2) unstable; urgency=medium
+
+  * UEFI bug fixing:  - added fat partition;  - renumbering partitions and disk arrays;  - using native efi support in grub.
+
+ -- Vladimir Stavrinov <vstavrinov@gmail.com>  Tue, 11 Feb 2014 13:25:57 +0400
+
 install-debian (2.2.1) unstable; urgency=medium
 
   * Added UEFI boot support. Increased reserved space.
