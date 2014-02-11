@@ -5,7 +5,7 @@
 # License: latest GPL at http://www.gnu.org/licenses/
 #set -x -v
 
-VERSION=2.2.1
+VERSION=2.2.2
 if [ $(id -u ) -ne 0 ]; then
 	echo "
 	Your should be root to run this script.
@@ -72,6 +72,7 @@ export DEBIAN_FRONTEND="noninteractive"
 
 CORE=/dev/md0
 RAID=/dev/md1
+LOAD=/dev/md2
 GROUP=sys
 if [ -z "$DEVICE" ] && [ -z $ARRAY ]; then
 	DEVICE=$(gawk '{
@@ -120,7 +121,8 @@ fi
 : ${srv:=0}
 LIMIT=400
 RATE=20
-SHIFT=2
+BIOS=2
+EFI=1
 IFACE=$(route -n | awk '/^0.0.0.0/ {print $8}' )
 : ${ADDRESS:=$(ifconfig $IFACE | awk '/inet addr:/ {print $2}' | cut -d: -f2)}
 : ${NETMASK:=$(ifconfig $IFACE | awk '/inet addr:/ {print $4}' | cut -d: -f2)}
@@ -363,12 +365,17 @@ while getopts D:A:r:x:m:a:o:K:u:R:U:B:H:O:S:I:M:G:N:P:E:T:Z:L:Vltpnscvdh OPTION;
 	    SHOW=true
 	    ;;
 	V)
-	    echo "
-		Auto install Debian base system
-		(C) Vladimir Stavrinov <vstavrinov@gmail.com>
-		Version $VERSION
-
-	    "
+	    if [ -z "$VERBOSE" ]; then 
+		    echo "
+			$SELF_NAME $VERSION
+		    "
+	    else
+		    echo "
+			$SELF_NAME $VERSION
+			Auto install Debian base system
+			(C) Vladimir Stavrinov <vstavrinov@gmail.com>
+		    "
+	    fi
 	    exit
 	    ;;
 	v)
@@ -491,7 +498,7 @@ case 0 in
 	;;
 
 	$([ $RAM -lt 2048 ]; echo $?))
-	SWAP=2048
+	SWAP=2047
 	;;
 
 	*)
@@ -594,7 +601,7 @@ echo " ARRAY=(${ARRAY[@]})"
 
 mb_to_cyl ()
 {
-	echo $((SHIFT+($1*1024*1024)/CS))
+	echo $((BIOS+EFI+($1*1024*1024)/CS))
 }
 
 umount_target ()
@@ -705,7 +712,7 @@ if $PARTITION; then
 		vgremove $VERBOSE -f -f $VG
 	done
 
-	pvs --noheadings -o pv_name ${DEVICE}* ${CORE}* ${RAID}* \
+	pvs --noheadings -o pv_name ${DEVICE}* ${LOAD}*  ${CORE}* ${RAID}* \
 		$(echo -n ${ARRAY[@]} | sed 's/\([^ ]\+\)/\1*/g') |
 	while read PV; do
 		pvremove $VERBOSE -f -f $PV
@@ -718,6 +725,7 @@ if $PARTITION; then
 		mdadm $VERBOSE --zero-superblock $DEVICE
 	fi
 	# stop raid 
+	mdadm -D $LOAD $VERBOSE  && mdadm -S $LOAD $VERBOSE
 	mdadm -D $CORE $VERBOSE  && mdadm -S $CORE $VERBOSE
 	mdadm -D $DEVICE $VERBOSE && mdadm -S $DEVICE $VERBOSE
 	mdadm -D $RAID $VERBOSE && mdadm -S $RAID $VERBOSE
@@ -789,10 +797,11 @@ if $PARTITION; then
 		parted -s $MEMBER mklabel gpt
 		parted $MEMBER <<-PARTED
 			unit cyl
-			mkpart primary ext2 0 $SHIFT
+			mkpart primary ext2 0 $BIOS
 			set 1 bios_grub on
-			mkpart primary ext2 $SHIFT $boot_size
-			set 2 boot on
+			mkpart primary fat32 $BIOS $((BIOS+EFI))
+			mkpart primary ext2 $((BIOS+EFI)) $boot_size
+			set 3 boot on
 			mkpart primary ext2 $boot_size $root_end
 			quit
 		PARTED
@@ -833,15 +842,20 @@ if $PARTITION; then
 		:
 	elif $CREATE; then
 		echo yes |
-		mdadm -C $CORE -x $SPARE -a md \
+		mdadm -C $LOAD -x $SPARE -a md \
 			-n $((${#ARRAY[@]}-$SPARE)) \
 			-l mirror $VERBOSE \
 			$(echo -n ${ARRAY[@]} | sed 's/\([^ ]\+\)/\12/g')
+		echo yes |
+		mdadm -C $CORE -x $SPARE -a md \
+			-n $((${#ARRAY[@]}-$SPARE)) \
+			-l mirror $VERBOSE \
+			$(echo -n ${ARRAY[@]} | sed 's/\([^ ]\+\)/\13/g')
 		DEVICE=$CORE
 		mdadm -C $RAID -x $SPARE -a md \
 			-n $((${#ARRAY[@]}-$SPARE)) \
 			-l $LEVEL $VERBOSE \
-			$(echo -n ${ARRAY[@]} | sed 's/\([^ ]\+\)/\13/g')
+			$(echo -n ${ARRAY[@]} | sed 's/\([^ ]\+\)/\14/g')
 	fi
 
 	############################
@@ -853,8 +867,8 @@ if $PARTITION; then
 
 	if [ ${#ARRAY[@]} -lt 4 ] || [ "$LEVEL" = "mirror" ]; then
 		sleep 2
-		pvcreate -f -f -y $VERBOSE ${PART}4 || exit
-		vgcreate $VERBOSE $GROUP ${PART}4
+		pvcreate -f -f -y $VERBOSE ${PART}5 || exit
+		vgcreate $VERBOSE $GROUP ${PART}5
 	else
 		pvcreate -f -f -y $VERBOSE $RAID || exit
 		vgcreate $VERBOSE $GROUP $RAID
@@ -870,7 +884,8 @@ if $PARTITION; then
 		[ $SIZE -gt 0 ] && lvcreate $VERBOSE -L ${SIZE} -n $VOL $GROUP
 	done
 	if [ ${#ARRAY[@]} -lt 4 ] || [ "$LEVEL" = "mirror" ]; then
-		for POINT in ${PART}2 ${PART}3;  do
+		mkfs -t vfat $VERBOSE ${PART}2
+		for POINT in ${PART}3 ${PART}4;  do
 			mkfs $VERBOSE -L $(basename $POINT) -t $FS_TYPE $POINT
 		done
 	else
@@ -887,7 +902,7 @@ if $PARTITION; then
 
 	mkswap /dev/$GROUP/swp
 	if [ ${#ARRAY[@]} -lt 4 ] || [ "$LEVEL" = "mirror" ]; then
-		ROOT_DEVICE=${PART}3
+		ROOT_DEVICE=${PART}4
 	else
 		ROOT_DEVICE=/dev/$GROUP/top 
 	fi
@@ -897,9 +912,13 @@ if $PARTITION; then
 		mkdir $VERBOSE "${TARGET}/${POINT}"
 	done
 	if [ ${#ARRAY[@]} -lt 4 ] || [ "$LEVEL" = "mirror" ]; then
-		mount $VERBOSE ${PART}2 "${TARGET}/boot"
+		mount $VERBOSE ${PART}3 "${TARGET}/boot"
+		mkdir "${TARGET}/boot/efi"
+		mount $VERBOSE ${PART}2 "${TARGET}/boot/efi"
 	else 
 		mount $VERBOSE $CORE "${TARGET}/boot"
+		mkdir "${TARGET}/boot/efi"
+		mount $VERBOSE $LOAD "${TARGET}/boot/efi"
 	fi
 
 	###################
@@ -908,26 +927,29 @@ if $PARTITION; then
 
 	FSTAB="proc /proc  proc defaults 0 0"
 	# get file system id for root(/) and boot fs.
-	ROOT_ID=$(dumpe2fs ${PART}3 -fh |
+	ROOT_ID=$(dumpe2fs ${PART}4 -fh |
 		gawk '/Filesystem UUID:/ {print $3}')
-	BOOT_ID=$(dumpe2fs ${PART}2 -fh |
+	BOOT_ID=$(dumpe2fs ${PART}3 -fh |
 		gawk '/Filesystem UUID:/ {print $3}')
 	# Add root (/) & boot records depends on raid level to fstab
 	if [ ${#ARRAY[@]} -lt 4 ] || [ "$LEVEL" = "mirror" ]; then
 		if [ -n "$DMRAID" ] || [ -n "$MDADM" ] || 
 			[ ${#ARRAY[@]} -gt 1 ]; then
 			FSTAB="${FSTAB}
-			${PART}3 / $FS_TYPE defaults,errors=remount-ro 0 1
-			${PART}2 /boot $FS_TYPE defaults 0 2"
+			${PART}4 / $FS_TYPE defaults,errors=remount-ro 0 1
+			${PART}3 /boot $FS_TYPE defaults 0 2
+			${PART}2 /boot/efi $FS_TYPE defaults 0 2"
 		else
 			FSTAB="${FSTAB}
 			UUID=$ROOT_ID / $FS_TYPE defaults,errors=remount-ro 0 1
-			UUID=$BOOT_ID /boot $FS_TYPE defaults 0 2"
+			UUID=$BOOT_ID /boot $FS_TYPE defaults 0 2
+			${PART}2 /boot/efi vfat defaults 0 2"
 		fi
 	else
 		FSTAB="${FSTAB}
 		/dev/$GROUP/top / $FS_TYPE defaults,errors=remount-ro 0 1
-		$CORE /boot $FS_TYPE defaults 0 2"
+		$CORE /boot $FS_TYPE defaults 0 2
+		$LOAD /boot/efi vfat defaults 0 2"
 	fi
 	for POINT in /dev/$GROUP/*; do
 		if [ -d "${TARGET}/$(basename ${POINT})" ]; then
@@ -1358,15 +1380,12 @@ if [ ${#ARRAY[@]} -lt 4 ] || [ "$LEVEL" = "mirror" ]; then
 	[ -n "$MDADM" ] &&
 	mdadm -D $DEVICE && 
 	echo "(md0) $DEVICE" > /boot/grub/device.map
-	grub-install --target=\$(basename /usr/lib/grub/*-efi) $DEVICE
+	grub-install $DEVICE
 else
 	for MEMBER in ${ARRAY[@]}; do
-		grub-install --target=\$(basename /usr/lib/grub/*-efi) \$MEMBER
+		grub-install \$MEMBER
 	done
 fi
-cp -a /usr/lib/grub/*-pc /boot/grub
-mkdir -p /boot/efi/boot
-cp -a /boot/grub/grub.efi /boot/efi/boot/boot$(arch | sed 's/^?\(.*\_\)\(.*\)/x\2/').efi
 update-grub
 umount $VERBOSE -a
 umount $VERBOSE /sys
