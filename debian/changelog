@@ -1,3 +1,9 @@
+install-debian (2.2.4) unstable; urgency=medium
+
+  * Fix UEFI support. Relay on grub packages.
+
+ -- Vladimir Stavrinov <vstavrinov@gmail.com>  Fri, 14 Feb 2014 16:00:51 +0400
+
 install-debian (2.2.3) unstable; urgency=medium
 
   * Format changelog.
