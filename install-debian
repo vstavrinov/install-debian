@@ -5,7 +5,7 @@
 # License: latest GPL at http://www.gnu.org/licenses/
 #set -x -v
 
-VERSION=2.2.3
+VERSION=2.2.4
 if [ $(id -u ) -ne 0 ]; then
 	echo "
 	Your should be root to run this script.
@@ -1077,7 +1077,7 @@ postrm_hook   = update-grub
 " > ${TARGET}/etc/kernel-img.conf
 
 echo "$TIMEZONE" > ${TARGET}/etc/timezone
-cp $VERBOSE -a ${TARGET}/usr/share/zoneinfo/$TIMEZONE ${TARGET}/etc/localtime 
+cp $VERBOSE ${TARGET}/usr/share/zoneinfo/$TIMEZONE ${TARGET}/etc/localtime 
 
 if type -p rpg; then
 	PASSWORD=$(echo $(rpg -r 1 -m 6 -x 10))
@@ -1149,9 +1149,18 @@ if ! [ -d /run/lock ]; then
 	mkdir -p /run/lock
 	chmod ugo+wt /run/lock
 fi
+
+mount $VERBOSE /proc
+mount $VERBOSE /sys
+
+if [ -e /sys/firmware/efi ]; then 
+	GRUB=grub-efi
+else
+	GRUB=grub-pc
+fi
 MAIN_LIST="
 grub-pc-bin
-grub-efi
+\$GRUB
 lvm2
 gawk
 parted
@@ -1172,6 +1181,7 @@ mailutils
 fortunes
 fortunes-ru
 grub-splashimages
+grub2-splashimages
 console-cyrillic
 smbfs
 smbclient
@@ -1191,8 +1201,6 @@ lsb-release
 linux-image-$KERNEL
 \$(apt-cache search ^firmware- | awk  '{print \$1}')
 "
-mount $VERBOSE /proc
-mount $VERBOSE /sys
 
 # Set non-interactive mode
 export DEBIAN_FRONTEND="noninteractive"
@@ -1309,10 +1317,10 @@ sed -i 's/\*\.=warn/&;kern.!=warning/g' \$SYSLOG_CONF
 sed -i 's/\*\.warn/&;kern.!=warning/g' \$SYSLOG_CONF
 echo 'kern.=warning     /var/log/kern.warning' >> \$SYSLOG_CONF
 
+cd /boot/grub
 if [ -n "$BOOT_SPLASH" ]; then 
 	wget -nv $VERBOSE -P /boot/grub \$(echo $BOOT_SPLASH)
 	if file /boot/grub/\$(basename $BOOT_SPLASH) 2>&1| grep -qiw image; then
-		cd /boot/grub
 		ln $VERBOSE -sf \$(basename $BOOT_SPLASH)  moreblue-orbit-grub.tga
 	fi
 else
