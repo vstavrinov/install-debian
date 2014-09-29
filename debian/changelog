@@ -1,3 +1,9 @@
+install-debian (2.2.5) unstable; urgency=medium
+
+  * Increased root file system size.
+
+ -- Vladimir Stavrinov <vstavrinov@gmail.com>  Mon, 29 Sep 2014 23:12:26 +0400
+
 install-debian (2.2.4) unstable; urgency=medium
 
   * Fix UEFI support. Relay on grub packages.
