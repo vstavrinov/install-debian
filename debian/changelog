@@ -1,3 +1,9 @@
+install-debian (2.2.6) unstable; urgency=medium
+
+  * Fix version number.
+
+ -- Vladimir Stavrinov <vstavrinov@gmail.com>  Tue, 30 Sep 2014 22:32:42 +0400
+
 install-debian (2.2.5) unstable; urgency=medium
 
   * Increased root file system size.
