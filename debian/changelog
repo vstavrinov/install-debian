@@ -1,3 +1,11 @@
+install-debian (2.2.7) unstable; urgency=medium
+
+  * Increased root file system size.
+  * Update changelog for 2.2.5 release
+  * Bug fixes for UEFI with RAID10
+
+ -- Vladimir Stavrinov <vstavrinov@gmail.com>  Thu, 09 Oct 2014 21:32:00 +0400
+
 install-debian (2.2.6) unstable; urgency=medium
 
   * Fix version number.
