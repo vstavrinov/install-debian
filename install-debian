@@ -5,7 +5,7 @@
 # License: latest GPL at http://www.gnu.org/licenses/
 #set -x -v
 
-VERSION=2.2.6
+VERSION=2.2.7
 if [ $(id -u ) -ne 0 ]; then
 	echo "
 	Your should be root to run this script.
@@ -108,7 +108,6 @@ fi
 #: ${MIRROR:=file:/srv/debian}
 #: ${MIRROR:=ftp://mirror.yandex.ru/debian}
 : ${ARCH:=$(dpkg --print-architecture )}
-#: ${SUITE:="sid"}
 : ${SUITE:="stable"}
 : ${FS_TYPE:=ext4}
 : ${ROOT:=$(((modules_size*kernels_number+base_size)*15/10))}
@@ -273,6 +272,7 @@ while getopts D:A:r:x:m:a:o:K:u:R:U:B:H:O:S:I:M:G:N:P:E:T:Z:L:Vltpnscvdh OPTION;
 	    EXCLUSIVE=true
 	    ARRAY=($OPTARG)
 	    DEVICE=$ARRAY
+	    CREATE=true
 	    ;;
 	r)
 	    LEVEL=$OPTARG
@@ -712,7 +712,7 @@ if $PARTITION; then
 		vgremove $VERBOSE -f -f $VG
 	done
 
-	pvs --noheadings -o pv_name ${DEVICE}* ${LOAD}*  ${CORE}* ${RAID}* \
+	pvs --noheadings -o pv_name ${DEVICE}* ${CORE}* ${RAID}* \
 		$(echo -n ${ARRAY[@]} | sed 's/\([^ ]\+\)/\1*/g') |
 	while read PV; do
 		pvremove $VERBOSE -f -f $PV
@@ -725,7 +725,6 @@ if $PARTITION; then
 		mdadm $VERBOSE --zero-superblock $DEVICE
 	fi
 	# stop raid 
-	mdadm -D $LOAD $VERBOSE  && mdadm -S $LOAD $VERBOSE
 	mdadm -D $CORE $VERBOSE  && mdadm -S $CORE $VERBOSE
 	mdadm -D $DEVICE $VERBOSE && mdadm -S $DEVICE $VERBOSE
 	mdadm -D $RAID $VERBOSE && mdadm -S $RAID $VERBOSE
@@ -842,11 +841,6 @@ if $PARTITION; then
 		:
 	elif $CREATE; then
 		echo yes |
-		mdadm -C $LOAD -x $SPARE -a md \
-			-n $((${#ARRAY[@]}-$SPARE)) \
-			-l mirror $VERBOSE \
-			$(echo -n ${ARRAY[@]} | sed 's/\([^ ]\+\)/\12/g')
-		echo yes |
 		mdadm -C $CORE -x $SPARE -a md \
 			-n $((${#ARRAY[@]}-$SPARE)) \
 			-l mirror $VERBOSE \
@@ -884,7 +878,7 @@ if $PARTITION; then
 		[ $SIZE -gt 0 ] && lvcreate $VERBOSE -L ${SIZE} -n $VOL $GROUP
 	done
 	if [ ${#ARRAY[@]} -lt 4 ] || [ "$LEVEL" = "mirror" ]; then
-		mkfs -t vfat $VERBOSE ${PART}2
+		mkfs.vfat $VERBOSE ${PART}2
 		for POINT in ${PART}3 ${PART}4;  do
 			mkfs $VERBOSE -L $(basename $POINT) -t $FS_TYPE $POINT
 		done
@@ -917,8 +911,6 @@ if $PARTITION; then
 		mount $VERBOSE ${PART}2 "${TARGET}/boot/efi"
 	else 
 		mount $VERBOSE $CORE "${TARGET}/boot"
-		mkdir "${TARGET}/boot/efi"
-		mount $VERBOSE $LOAD "${TARGET}/boot/efi"
 	fi
 
 	###################
@@ -938,18 +930,16 @@ if $PARTITION; then
 			FSTAB="${FSTAB}
 			${PART}4 / $FS_TYPE defaults,errors=remount-ro 0 1
 			${PART}3 /boot $FS_TYPE defaults 0 2
-			${PART}2 /boot/efi $FS_TYPE defaults 0 2"
+			${PART}2 /boot/efi vfat defaults 0 2"
 		else
 			FSTAB="${FSTAB}
 			UUID=$ROOT_ID / $FS_TYPE defaults,errors=remount-ro 0 1
-			UUID=$BOOT_ID /boot $FS_TYPE defaults 0 2
-			${PART}2 /boot/efi vfat defaults 0 2"
+			UUID=$BOOT_ID /boot $FS_TYPE defaults 0 2"
 		fi
 	else
 		FSTAB="${FSTAB}
 		/dev/$GROUP/top / $FS_TYPE defaults,errors=remount-ro 0 1
-		$CORE /boot $FS_TYPE defaults 0 2
-		$LOAD /boot/efi vfat defaults 0 2"
+		$CORE /boot $FS_TYPE defaults 0 2"
 	fi
 	for POINT in /dev/$GROUP/*; do
 		if [ -d "${TARGET}/$(basename ${POINT})" ]; then
@@ -986,7 +976,8 @@ else # if $PARTITION
 	ROOT_DEVICE=$(awk -v TARGET=$TARGET '{if ($2 == TARGET) print $1}' /proc/mounts )
 fi # if $PARTITION
 FSTAB="${FSTAB}
-sysfs /sys sysfs defaults 0 0"
+sysfs  /sys     sysfs    defaults                                              0 0
+devpts /dev/pts devpts   rw,nosuid,noexec,relatime,gid=5,mode=620,ptmxmode=000 0 0"
 
 
 eval $(
@@ -1143,6 +1134,12 @@ while read FILE MODE; do
 	ls -l ${TARGET}$FILE
 done
 
+if [ -e /sys/firmware/efi ]; then 
+	GRUB=grub-efi
+else
+	GRUB=grub-pc
+fi
+
 chroot ${TARGET} su - <<-EOF
 eval  $DEBUG && set -x -v
 if ! [ -d /run/lock ]; then 
@@ -1153,15 +1150,11 @@ fi
 mount $VERBOSE /proc
 mount $VERBOSE /sys
 
-if [ -e /sys/firmware/efi ]; then 
-	GRUB=grub-efi
-else
-	GRUB=grub-pc
-fi
 MAIN_LIST="
 grub-pc-bin
-\$GRUB
+$GRUB
 lvm2
+dosfstools
 gawk
 parted
 $DMRAID
@@ -1388,11 +1381,32 @@ if [ ${#ARRAY[@]} -lt 4 ] || [ "$LEVEL" = "mirror" ]; then
 	[ -n "$MDADM" ] &&
 	mdadm -D $DEVICE && 
 	echo "(md0) $DEVICE" > /boot/grub/device.map
+	mount $VERBOSE ${PART}2 /boot/efi
 	grub-install $DEVICE
+	if [ "$GRUB" = "grub-efi" ]; then
+		mkdir $VERBOSE -p /boot/efi/EFI/boot 
+		cp $VERBOSE -a /boot/efi/EFI/{debian/grub,boot/boot}x64.efi
+	fi
 else
-	for MEMBER in ${ARRAY[@]}; do
-		grub-install \$MEMBER
-	done
+	case $GRUB in 
+		grub-efi)
+			mkdir $VERBOSE /boot/efi
+			for MEMBER in ${ARRAY[@]}; do
+				mkfs.vfat $VERBOSE \${MEMBER}2
+				mount $VERBOSE \${MEMBER}2 /boot/efi
+				grub-install \${MEMBER}
+				mkdir $VERBOSE -p /boot/efi/EFI/boot 
+				cp $VERBOSE -a /boot/efi/EFI/{debian/grub,boot/boot}x64.efi
+				umount $VERBOSE /boot/efi
+			done
+			;;
+		grub-pc)
+			for MEMBER in ${ARRAY[@]}; do
+				grub-install \${MEMBER}
+				echo \${MEMBER}
+			done
+		;;
+	esac
 fi
 update-grub
 umount $VERBOSE -a
