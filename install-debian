@@ -5,7 +5,7 @@
 # License: latest GPL at http://www.gnu.org/licenses/
 #set -x -v
 
-VERSION=2.2.8
+VERSION=2.2.9
 if [ $(id -u ) -ne 0 ]; then
 	echo "
 	Your should be root to run this script.
@@ -1372,12 +1372,12 @@ umount_target
 mount $VERBOSE $ROOT_DEVICE "${TARGET}"
 # Without sh it stopped at this point
 chroot ${TARGET} sh <<-EOB
-umount $VERBOSE /proc
-umount $VERBOSE /sys
-umount $VERBOSE -a
-mount $VERBOSE -a
 mount $VERBOSE /proc
 mount $VERBOSE /sys
+mount $VERBOSE /boot
+mount $VERBOSE /usr
+mount $VERBOSE /var
+mount $VERBOSE /tmp
 echo "Installing boot loader ..."
 SLEEP=10
 CYCLE=12
