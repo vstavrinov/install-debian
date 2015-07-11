@@ -1,3 +1,9 @@
+install-debian (2.2.9) unstable; urgency=medium
+
+  * Bug fix: /boot was not mounted.
+
+ -- Vladimir Stavrinov <vstavrinov@gmail.com>  Sat, 11 Jul 2015 15:12:22 +0300
+
 install-debian (2.2.8) unstable; urgency=medium
 
   * Bug fix: missing packages (e.g. aptitude) Bug fix: escapes \$ Bug fix: mount /proc
