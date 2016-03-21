@@ -1,3 +1,9 @@
+install-debian (2.2.12) unstable; urgency=medium
+
+  * Fix version.
+
+ -- Vladimir Stavrinov <vstavrinov@gmail.com>  Mon, 21 Mar 2016 19:48:01 +0300
+
 install-debian (2.2.11) unstable; urgency=medium
 
   * Add README.
