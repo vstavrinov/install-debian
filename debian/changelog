@@ -1,3 +1,9 @@
+install-debian (2.2.10) unstable; urgency=medium
+
+  * Migrate to github.
+
+ -- Vladimir Stavrinov <vstavrinov@gmail.com>  Mon, 21 Mar 2016 18:46:35 +0300
+
 install-debian (2.2.9) unstable; urgency=medium
 
   * Bug fix: /boot was not mounted.
