@@ -4,9 +4,9 @@ Priority: optional
 Maintainer: Vladimir Stavrinov <vstavrinov@gmail.com>
 Build-Depends: debhelper (>= 8.0.0)
 Standards-Version: 3.9.5
-Homepage: http://sourceforge.net/projects/install-debian/
-#Vcs-Git: git://git.debian.org/collab-maint/install-debian.git
-#Vcs-Browser: http://git.debian.org/?p=collab-maint/install-debian.git;a=summary
+Homepage: https://github.com/vstavrinov/install-debian
+Vcs-Git: git://github.com/vstavrinov/install-debian.git
+Vcs-Browser: https://github.com/vstavrinov/install-debian
 
 Package: install-debian
 Architecture: all
