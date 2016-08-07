@@ -5,7 +5,7 @@
 # License: latest GPL at http://www.gnu.org/licenses/
 #set -x -v
 
-VERSION=2.2.12
+VERSION=2.2.13
 if [ $(id -u ) -ne 0 ]; then
 	echo "
 	Your should be root to run this script.
@@ -476,50 +476,41 @@ done
 ## CALCULATE DISK PARTITIONS SIZE ##
 ####################################
 
-if ! [ -b $DEVICE ]; then
-	echo "There are no such block device $DEVICE". Exiting ...
-	exit 1
-fi
+if $PARTITION; then
+	if ! [ -b $DEVICE ]; then
+		echo "There are no such block device $DEVICE". Exiting ...
+		exit 1
+	fi
 
-DISK=$(awk "{
-	if (\"${DEVICE#/dev/}\" == \$NF) print int(\$(NF-1)/1024)
-	}" /proc/partitions)
+	DISK=$(awk "{
+		if (\"${DEVICE#/dev/}\" == \$NF) print int(\$(NF-1)/1024)
+		}" /proc/partitions)
 
-if [ ${#ARRAY[@]} -lt 4 ] || [ "$LEVEL" = "mirror" ]; then
-	:
-else
-	DISK=$((DISK*(${#ARRAY[@]}/2)))
-fi
+	if [ ${#ARRAY[@]} -lt 4 ] || [ "$LEVEL" = "mirror" ]; then
+		:
+	else
+		DISK=$((DISK*(${#ARRAY[@]}/2)))
+	fi
 
-if [ -z "$DISK" ]; then
-	echo "$DEVICE: no such device. Specify other one."
-	exit
-fi
+	if [ -z "$DISK" ]; then
+		echo "$DEVICE: no such device. Specify other one."
+		exit
+	fi
 
-RAM=$(free -m | gawk '/^Mem:/ {print $2}')
-case 0 in
-	$([ $RAM -gt 4096 ]; echo $?))
-	SWAP=4096
-	;;
+	RAM=$(free -m | gawk '/^Mem:/ {print $2}')
+	case 0 in
+		$([ $RAM -gt 4096 ]; echo $?))
+		SWAP=4096
+		;;
 
-	$([ $RAM -lt 2048 ]; echo $?))
-	SWAP=2047
-	;;
+		$([ $RAM -lt 2048 ]; echo $?))
+		SWAP=2047
+		;;
 
-	*)
-	SWAP=$RAM
-	;;
-esac 
-VOLUME=$((USR +
-	       TMP + 
-	       SWAP + 
-	       home +
-	       opt +
-	       srv +
-	       var))
-
-if [ $DISK -lt $VOLUME ]; then
-	SWAP=10
+		*)
+		SWAP=$RAM
+		;;
+	esac 
 	VOLUME=$((USR +
 		       TMP + 
 		       SWAP + 
@@ -528,34 +519,45 @@ if [ $DISK -lt $VOLUME ]; then
 		       srv +
 		       var))
 
-fi
-if [ ${#ARRAY[@]} -lt 4 ] || [ "$LEVEL" = "mirror" ]; then
-	RESERVE=$((DISK*RATE/100))
-	[ $RESERVE -lt $LIMIT ] && RESERVE=$LIMIT
-	EXTENT=$((DISK-BOOT-ROOT-RESERVE))
-else
-	EXTENT=$((DISK-BOOT))
-	:
-fi
+	if [ $DISK -lt $VOLUME ]; then
+		SWAP=10
+		VOLUME=$((USR +
+			       TMP + 
+			       SWAP + 
+			       home +
+			       opt +
+			       srv +
+			       var))
 
-var=$((VOLUME - 
-	    USR - 
-	    TMP -
-	    SWAP -
-	    home -
-	    opt -
-	    srv)) 
+	fi
+	if [ ${#ARRAY[@]} -lt 4 ] || [ "$LEVEL" = "mirror" ]; then
+		RESERVE=$((DISK*RATE/100))
+		[ $RESERVE -lt $LIMIT ] && RESERVE=$LIMIT
+		EXTENT=$((DISK-BOOT-ROOT-RESERVE))
+	else
+		EXTENT=$((DISK-BOOT))
+		:
+	fi
+
+	var=$((VOLUME - 
+		    USR - 
+		    TMP -
+		    SWAP -
+		    home -
+		    opt -
+		    srv)) 
 
 
-# Check device if it is dmaraid mdadm to install it, 
+	# Check device if it is dmaraid mdadm to install it, 
 
-if dmraid -s $(basename $DEVICE) 2>/dev/null; then
-	DMRAID="dmraid"
-elif mdadm -D $DEVICE || [ ${#ARRAY[@]} -gt 1 ]; then
-	MDADM="mdadm"
-	:
-fi
+	if dmraid -s $(basename $DEVICE) 2>/dev/null; then
+		DMRAID="dmraid"
+	elif mdadm -D $DEVICE || [ ${#ARRAY[@]} -gt 1 ]; then
+		MDADM="mdadm"
+		:
+	fi
 
+fi # if $PARTITION; then
 
 ######################
 ## OUTPUT VARIABLES ##
