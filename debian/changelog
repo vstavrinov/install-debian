@@ -1,3 +1,9 @@
+install-debian (2.2.14) unstable; urgency=medium
+
+  * refactoring
+
+ -- Vladimir Stavrinov <vs@terra.oz>  Wed, 19 Apr 2017 03:16:59 +0300
+
 install-debian (2.2.13) unstable; urgency=medium
 
   * Bug fix manual partitioning.
