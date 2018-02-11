@@ -6,7 +6,7 @@
 
 #set -x -v
 
-VERSION=2.2.16
+VERSION=2.2.17
 if [ $(id -u ) -ne 0 ]; then
     echo "
     Your should be root to run this script.
@@ -439,7 +439,7 @@ set_raid_level ()
         LEVEL=mirror
         ;;
     esac
-    if [ ${#ARRAY[@]} -eq 1 ] || [ "$LEVEL" = "mirror" ]; then
+    if [ ${#ARRAY[@]} -lt 2 ] || [ "$LEVEL" = "mirror" ]; then
         STRIPE=false
     else 
         STRIPE=true
@@ -601,8 +601,7 @@ show_var ()
     ## OUTPUT VARIABLES ##
     ######################
 
-    echo "
-    APT=$APT
+    echo " APT=$APT
     APT_OPTIONS=$APT_OPTIONS
     VERBOSE=$VERBOSE
     MIRROR=$MIRROR
@@ -635,8 +634,7 @@ show_var ()
     DOMAIN=${DOMAIN}
     TIMEZONE=${TIMEZONE}
     MAILTO=$MAILTO
-    LOG=$LOG
-    " |
+    LOG=$LOG " |
     pr -J -w 78 -t --columns=2 |
     gawk '{printf(" %-39s %-39s\n", $1, $2)}'
     echo " ARRAY=(${ARRAY[@]})"
@@ -713,13 +711,13 @@ start_warning ()
         fi
         dialog --colors --no-collapse --defaultno --yesno " \Zb\Z4Install Debain GNU/Linux\Zn\ZB
 
-    $VARS
+$VARS
 
-        \Zb\Z1WARNING!\Zn\ZB This will destroy all data on the hard disks: 
+ \Zb\Z1WARNING!\Zn\ZB This will destroy all data on the hard disks: 
 
-        \Zb\Z5$(if [ ${#ARRAY[@]} -gt 1 ]; then echo ${ARRAY[@]}; else echo $DEVICE; fi)\Zn\ZB
+ \Zb\Z5$(if [ ${#ARRAY[@]} -gt 1 ]; then echo ${ARRAY[@]}; else echo $DEVICE; fi)\Zn\ZB
 
-        Are Your sure to continue?  " $HEIGHT $WIDTH || exit
+ Are Your sure to continue?  " $HEIGHT $WIDTH || exit
     fi 
 } # start_warning ()
 
