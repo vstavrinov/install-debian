@@ -6,7 +6,7 @@
 
 #set -x -v
 
-VERSION=2.2.17
+VERSION=2.2.18
 if [ $(id -u ) -ne 0 ]; then
     echo "
     Your should be root to run this script.
@@ -1407,7 +1407,7 @@ send_password ()
 } # send_password () 
 
 init_variables
-get_options $@
+get_options "$@"
 set_logging
 set_raid_level
 check_utils
