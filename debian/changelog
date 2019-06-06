@@ -1,3 +1,9 @@
+install-debian (2.2.19) unstable; urgency=medium
+
+  * Add preseed configurations for official installer.
+
+ -- Vladimir Stavrinov <vstavrinov@gmail.com>  Thu, 06 Jun 2019 19:56:29 +0300
+
 install-debian (2.2.18) unstable; urgency=medium
 
   * bug fix: option "-A" doesn't work for multiply disks.
