@@ -1021,10 +1021,6 @@ configure_system ()
     ## MAIN CONFIGURATION ##
     ########################
 
-    [ -r /etc/apt/trusted.gpg.d/inist-trusted.gpg ] &&
-    cp $VERBOSE -a /etc/apt/trusted.gpg.d/inist-trusted.gpg \
-        ${TARGET}/etc/apt/trusted.gpg.d
-
     echo "$FSTAB" |
     column -t > ${TARGET}/etc/fstab
 
