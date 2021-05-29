@@ -6,15 +6,15 @@
 
 #set -x -v
 
-VERSION=2.2.18
-if [ $(id -u ) -ne 0 ]; then
+VERSION=2.2.19
+if [ "$(id -u)" -ne 0 ]; then
     echo "
     Your should be root to run this script.
     "
     exit
 fi
 
-SELF_NAME=$(basename $0 )
+SELF_NAME=$(basename "$0")
 
 unset ADDRESS || true
 unset APT || true
@@ -34,7 +34,6 @@ unset LOG || true
 unset MAILTO || true
 unset MIRROR || true
 unset NAMESERVER || true
-unset NETMASK || true
 unset ORACLE_OWNER || true
 unset PARTITION || true
 unset ROOT || true
@@ -47,53 +46,53 @@ unset opt || true
 unset srv || true
 unset var || true
 
-: ${LOG:=${SELF_NAME}.log}
+: "${LOG:=${SELF_NAME}.log}"
 
-[ -r /etc/$SELF_NAME/$SELF_NAME.conf ] && . /etc/$SELF_NAME/$SELF_NAME.conf
-[ -r /etc/$SELF_NAME/local.conf ] && . /etc/$SELF_NAME/local.conf
+[ -r /etc/install-debian/default.conf ] && . /etc/install-debian/default.conf
+[ -r /etc/install-debian/local.conf ] && . /etc/install-debian/local.conf
 
 
-kernels_number=4
-kernel_size=64
-modules_size=256
+kernels_number=3
+kernel_size=48
+modules_size=384
 loader_size=16
-base_size=512
+base_size=32
 
 # Cylinder size
 CS=$((512*63*255))
 
 
 export DEBIAN_FRONTEND="noninteractive"
-: ${APT:=aptitude}
+: "${APT:=aptitude}"
 
 ####################
 ## INIT VARIABLES ##
 ####################
 
-init_variables () 
+init_variables ()
 {
     [ -n "$VERBOSE" ] && echo "Init Variables start"
     CORE=/dev/md0
     RAID=/dev/md1
     GROUP=sys
-    if [ -z "$DEVICE" ] && [ -z $ARRAY ]; then
+    if [ -z "$DEVICE" ] && [ -z "$ARRAY" ]; then
         DEVICE=$(gawk '{
-                if (SIZE < $3 && 
+                if (SIZE < $3 &&
                     system("mdadm -D /dev/"$4" > /dev/null 2>&1")) {
                     SIZE=$3;
                     DEVICE=$4
                 }
-            } 
+            }
             END {
                 print DEVICE
             }
         ' /proc/partitions )
-        SIZE=$(gawk -v DEVICE=${DEVICE//\//\\/} '{
+        SIZE=$(gawk -v DEVICE="${DEVICE//\//\\/}" '{
                     if ($4 == DEVICE) print $3
                     }' /proc/partitions)
-        ARRAY=($(gawk -v SIZE=$SIZE '{
+        mapfile -t ARRAY < <(gawk -v SIZE="$SIZE" '{
                     if ($3 == SIZE) printf("%s ", "/dev/"$4)
-                    }' /proc/partitions))
+                    }' /proc/partitions)
         DEVICE=/dev/$DEVICE
         if [ ${#ARRAY[@]} -lt 2 ]; then
             CREATE=false
@@ -101,46 +100,47 @@ init_variables ()
         else
             CREATE=true
         fi
-    elif [ -n "$DEVICE" ] && [ -z $ARRAY ]; then
+    elif [ -n "$DEVICE" ] && [ -z "${ARRAY[0]}" ]; then
         CREATE=false
     fi
 
-    : ${PARTITION:=true}
-    : ${MIRROR:=$(awk '/^deb / {LN++; if (LN == 1) print $2}' /etc/apt/sources.list)}
-    : ${ARCH:=$(dpkg --print-architecture )}
-    : ${SUITE:="stable"}
-    : ${FS_TYPE:=ext4}
-    : ${ROOT:=$(((modules_size*kernels_number+base_size)*15/10))}
-    : ${BOOT:=$(((kernel_size*kernels_number+loader_size)*15/10))}
-    : ${TMP:=448}
-    : ${USR:=3072}
-    : ${var:=2048}
-    : ${home:=1024}
-    : ${opt:=0}
-    : ${srv:=0}
+    : "${PARTITION:=true}"
+    : "${MIRROR:=$(awk '/^deb / {LN++; if (LN == 1) print $2}' \
+        /etc/apt/sources.list)}"
+    : "${ARCH:=$(dpkg --print-architecture )}"
+    : "${SUITE:="stable"}"
+    : "${FS_TYPE:=ext4}"
+    : "${ROOT:=$base_size}"
+    : "${BOOT:=$(((kernel_size*kernels_number+loader_size)*12/10))}"
+    : "${TMP:=256}"
+    : "${USR:=$((2048+(modules_size*kernels_number)*12/10))}"
+    : "${var:=1024}"
+    : "${home:=512}"
+    : "${opt:=0}"
+    : "${srv:=0}"
     LIMIT=400
-    RATE=20
+    RATE=10
     BIOS=2
     EFI=1
     IFACE=$(ip route | awk '/default/ {print $NF}')
-    : ${ADDRESS:=$(ifconfig $IFACE | awk '/ inet / {print $2}')}
-    : ${NETMASK:=$(ifconfig $IFACE | awk '/ inet / {print $4}')}
-    : ${GATEWAY:=$(route -n | awk '/^0.0.0.0/ {print $2}')}
-    : ${HOSTNAME:=$(hostname)}
-    : ${DOMAIN:=$(domainname -d)}
-    : ${DOMAIN:="oz"}
-    : ${NAMESERVER:=$(awk '/^[[:blank:]]*nameserver/ {print $2}' /etc/resolv.conf | head -1)}
-    : ${MAILTO:=root@localhost}
-    : ${TIMEZONE:=$([ -f /etc/timezone ] && cat /etc/timezone)}
+    : "${ADDRESS:=$(ip addr | awk "/inet .* $IFACE/ {print \$2}")}"
+    : "${GATEWAY:=$(ip route  | awk '/^default via / {print $3}')}"
+    : "${HOSTNAME:=$(hostname)}"
+    : "${DOMAIN:=$(domainname -d)}"
+    : "${DOMAIN:="oz"}"
+    : "${NAMESERVER:=$(awk '/^[[:blank:]]*nameserver/ {print $2}' \
+        /etc/resolv.conf | head -1)}"
+    : "${MAILTO:=root@localhost}"
+    : "${TIMEZONE:=$([ -f /etc/timezone ] && cat /etc/timezone)}"
     SHOW=false
     DEBUG=false
     NO_WARNING=false
     LOGGING=false
     TARGET="/mnt"
     DEBOOTSTRAP="debootstrap"
-
+    #
     if [ "$ARCH" = "i386" ]; then
-        if [ $(free -g | awk '/^Mem: / {print $2}') -ge 3 ]; then
+        if [ "$(free -g | awk '/^Mem: / {print $2}')" -ge 3 ]; then
             KERNEL="686-bigmem"
         else
             KERNEL="686"
@@ -158,37 +158,37 @@ init_variables ()
 usage ()
 {
     echo "
- Auto install Debian base system
+    Auto install Debian base system
 
-    $SELF_NAME [-lctvdh] [-D DEVICE | -A ARRAY]  [-m MIRROR]
-           [-R ROOT] [-U USR] [-B var] [-H home] [-O opt] [-S srv]
-           [-I ADDRESS] [-M NETMASK] [-G GATEWAY] [ -o BSOPT ]
-           [-r LEVEL] [-x SPARE]
-           [-N HOSTNAME] [-P DOMAIN] [-E NAMESERVER]
-           [-T MAILTO] [-Z TIMEZONE] [-L LOG]
+    $SELF_NAME [-lctpvdh] [-D DEVICE | -A ARRAY]  [-m MIRROR]
+            [-R ROOT] [-U USR] [-B var] [-H home] [-O opt] [-S srv]
+            [-I ADDRESS] [-G GATEWAY] [ -o BSOPT ]
+            [-r LEVEL] [-x SPARE]
+            [-N HOSTNAME] [-P DOMAIN] [-E NAMESERVER]
+            [-T MAILTO] [-Z TIMEZONE] [-L LOG]
 
     -D DEVICE
-    to install to [ $DEVICE ]
+        to install to [ $DEVICE ]
     -m MIRROR
-    to install from [ $MIRROR ]
+        to install from [ $MIRROR ]
     -a ARCH
-    Architecture [ $ARCH ]
-    -c 
+            Architecture [ $ARCH ]
+    -c
         use cdebootstrap instead of debootstrap
-    -t 
+    -t
         allow untrusted mirror
     -o BSOPT
-    debootstrap extra options [ $BSOPT ]
+        debootstrap extra options [ $BSOPT ]
     -A ARRAY
-    quoted list of RAID components separated by space [ ${ARRAY[@]} ]
+        quoted list of RAID components separated by space [ ${ARRAY[*]} ]
     -r LEVEL
-    raid level (see mdadm)
+        raid level (see mdadm)
     -x SPARE
-    number of spare (eXtra) devices
+        number of spare (eXtra) devices
     -K KERNEL
         Define kernel package as linux-image-KERNEL [ $KERNEL ]
     -u SUITE
-    Distribution (suite) [ $SUITE ]
+        Distribution (suite) [ $SUITE ]
     -R ROOT
         / (root) partition size, Mb [ $ROOT ]
     -U USR
@@ -202,9 +202,7 @@ usage ()
     -S srv
         /srv partition size, Mb [ $srv ]
     -I ADDRESS
-        IP Adress [ $ADDRESS ]
-    -M NETMASK
-        Network Mask [ $NETMASK ]
+        IP Adress/mask [ $ADDRESS ]
     -G GATEWAY
         Default Gateway [ $GATEWAY ]
     -N HOSTNAME
@@ -222,9 +220,9 @@ usage ()
     -l
         Logging output to file [ $LOG ]
     -p
-       Manual partition and mount under $TARGET before install
+        Manual partition and mount under $TARGET before install
     -e
-       Clean space and exit.
+        Clean space and exit.
     -n
         No warning dialog. Start immediately non-interactive.
     -s
@@ -234,23 +232,24 @@ usage ()
         Version
     -v
         Verbose
-    -d 
+    -d
         Debug
     -h
         Help
-    
+
     Files:
         /etc/$SELF_NAME/$SELF_NAME.conf
             System wide config
         /etc/$SELF_NAME/local.conf
             Local config, override system settings
         /etc/$SELF_NAME/install/
-            Everything from this directory will be copied to the root of new system as related path
+            Everything from this directory will be copied to the root of new \
+            system as related path
     "
     exit
 } # usage ()
 
-get_options () 
+get_options ()
 
 #############################
 ## GET COMMAND LINE OPIONS ##
@@ -260,11 +259,12 @@ get_options ()
     [ -n "$VERBOSE" ] && echo "Get Options start"
     EXCLUSIVE=false
     OPTERR=0
-    while getopts D:A:r:x:m:a:o:K:u:R:U:B:H:O:S:I:M:G:N:P:E:T:Z:L:Vltpenscvdh OPTION; do
+    while getopts D:A:r:x:m:a:o:K:u:R:U:B:H:N:O:S:I:M:G:P:E:T:Z:L:Vltpenscvdh \
+        OPTION; do
         case $OPTION in
         D)
             $EXCLUSIVE && {
-                echo "Options -D & -A are mutually exclusive"; 
+                echo "Options -D & -A are mutually exclusive";
                 exit 1
             }
             EXCLUSIVE=true
@@ -274,12 +274,12 @@ get_options ()
             ;;
         A)
             $EXCLUSIVE && {
-                echo "Options -A & -D are mutually exclusive"; 
+                echo "Options -A & -D are mutually exclusive";
                 exit 1
             }
             EXCLUSIVE=true
-            ARRAY=($OPTARG)
-            DEVICE=$ARRAY
+            mapfile -t -d " " ARRAY <<< "$OPTARG"
+            DEVICE=${ARRAY[0]}
             CREATE=true
             ;;
         r)
@@ -295,7 +295,7 @@ get_options ()
             ARCH=$OPTARG
             ;;
         o)
-            BSOPT=$OPTARG
+            mapfile -t -d " " BSOPT <<< "$OPTARG"
             ;;
         c)
             DEBOOTSTRAP=cdebootstrap
@@ -307,7 +307,7 @@ get_options ()
             else
                 APT_OPTIONS="$APT_OPTIONS --allow-untrusted"
             fi
-            BSOPT="$BSOPT --no-check-gpg"
+            BSOPT+=('--no-check-gpg')
             ;;
         K)
             KERNEL=$OPTARG
@@ -335,9 +335,6 @@ get_options ()
             ;;
         I)
             ADDRESS=$OPTARG
-            ;;
-        M)
-            NETMASK=$OPTARG
             ;;
         G)
             GATEWAY=$OPTARG
@@ -369,7 +366,10 @@ get_options ()
             unset ARRAY
             # Find whole disk with root partition by striping out partition number and preceding 'p'
             DEVICE=$(mount |
-                gawk -v TARGET=$TARGET '{if ($3 == TARGET) print gensub("(([0-9])p)?[0-9]+$", "\\2", 1, $1)}')
+                gawk -v TARGET=$TARGET '{
+                        if ($3 == TARGET)
+                        print gensub("(([0-9])p)?[0-9]+$", "\\2", 1, $1)
+                    }')
             ;;
         e)
             ACTION=clean
@@ -381,7 +381,7 @@ get_options ()
             SHOW=true
             ;;
         V)
-            if [ -z "$VERBOSE" ]; then 
+            if [ -z "$VERBOSE" ]; then
                 echo "
                 $SELF_NAME $VERSION
                 "
@@ -406,7 +406,7 @@ get_options ()
             ;;
         esac
     done
-    shift  $[$OPTIND - 1]
+    shift  $((OPTIND - 1))
     if $SHOW; then
         show_var
         exit
@@ -414,20 +414,20 @@ get_options ()
     [ -n "$VERBOSE" ] && echo "Get Options finish."
 } # get_options ()
 
-set_logging () 
+set_logging ()
 {
     if ${LOGGING} && $NO_WARNING; then
-        [ -f ${LOG} ] && rm -f ${LOG} 
-        exec < /dev/null >> ${LOG} 2>&1
+        [ -f "${LOG}" ] && rm -f "${LOG}"
+        exec < /dev/null >> "${LOG}" 2>&1
     fi
 } # set_logging
 
-set_raid_level () 
+set_raid_level ()
 {
     [ -n "$VERBOSE" ] && echo "Set RAID start."
-    if [ -n "$ARRAY" ]; then
-        : ${SPARE:=$((${#ARRAY[@]}%2))}
-        if [ -z "$LEVEL" ] && [ $((${#ARRAY[@]} - $SPARE)) -eq 2 ]; then
+    if [ -n "${ARRAY[0]}" ]; then
+        : "${SPARE:=$((${#ARRAY[@]}%2))}"
+        if [ -z "$LEVEL" ] && [ $((${#ARRAY[@]} - SPARE)) -eq 2 ]; then
             LEVEL=mirror
         else
             : ${LEVEL:=raid10}
@@ -441,13 +441,13 @@ set_raid_level ()
     esac
     if [ ${#ARRAY[@]} -lt 2 ] || [ "$LEVEL" = "mirror" ]; then
         STRIPE=false
-    else 
+    else
         STRIPE=true
     fi
     [ -n "$VERBOSE" ] && echo "Set RAID finish."
 } # set_raid_level
 
-check_utils () 
+check_utils ()
 {
     [ -n "$VERBOSE" ] && echo "Check Utils start."
     UTILS="
@@ -490,12 +490,12 @@ check_utils ()
     "
 
     for prog in $UTILS; do
-        if ! type $prog > /dev/null; then
+        if ! type "$prog" > /dev/null; then
             echo "
             $prog not found.
             You MUST have all of those uitls to be installed:
             "
-            echo $UTILS
+            echo "$UTILS"
             echo "
             Exiting ...
             "
@@ -505,14 +505,14 @@ check_utils ()
     [ -n "$VERBOSE" ] && echo "Check Utils finish."
 } # check_utils
 
-space_cutting () 
+space_cutting ()
 {
     ####################################
     ## CALCULATE DISK PARTITIONS SIZE ##
     ####################################
     [ -n "$VERBOSE" ] && echo "Space Cutting start."
     if $PARTITION; then
-        if ! [ -b $DEVICE ]; then
+        if ! [ -b "$DEVICE" ]; then
             echo "There are no such block device $DEVICE". Exiting ...
             exit 1
         fi
@@ -530,37 +530,37 @@ space_cutting ()
 
         RAM=$(free -m | gawk '/^Mem:/ {print $2}')
         case 0 in
-            $([ $RAM -gt 4096 ]; echo $?))
+            $([ "$RAM" -gt 4096 ]; echo $?))
             SWAP=4096
             ;;
 
-            $([ $RAM -lt 2048 ]; echo $?))
+            $([ "$RAM" -lt 2048 ]; echo $?))
             SWAP=2047
             ;;
 
             *)
             SWAP=$RAM
             ;;
-        esac 
+        esac
         VOLUME=$((USR +
-                   TMP + 
-                   ROOT + 
-                   SWAP + 
-                   home +
-                   opt +
-                   srv +
-                   var))
+                    TMP +
+                    ROOT +
+                    SWAP +
+                    home +
+                    opt +
+                    srv +
+                    var))
 
         if [ $DISK -lt $VOLUME ]; then
             SWAP=10
             VOLUME=$((USR +
-                       TMP + 
-                       ROOT +
-                       SWAP + 
-                       home +
-                       opt +
-                       srv +
-                       var))
+                        TMP +
+                        ROOT +
+                        SWAP +
+                        home +
+                        opt +
+                        srv +
+                        var))
 
         fi
         if ! $STRIPE; then
@@ -572,21 +572,21 @@ space_cutting ()
             :
         fi
 
-        var=$((VOLUME - 
-                USR - 
+        var=$((VOLUME -
+                USR -
                 ROOT -
                 TMP -
                 SWAP -
                 home -
                 opt -
-                srv)) 
+                srv))
 
 
         # Check device if it is dmaraid mdadm to install it, 
 
-        if dmraid -s $(basename $DEVICE) 2>/dev/null; then
+        if dmraid -s "$(basename "$DEVICE")" 2>/dev/null; then
             DMRAID="dmraid"
-        elif mdadm -D $DEVICE || [ ${#ARRAY[@]} -gt 1 ]; then
+        elif mdadm -D "$DEVICE" || [ ${#ARRAY[@]} -gt 1 ]; then
             MDADM="mdadm"
             :
         fi
@@ -627,7 +627,6 @@ show_var ()
     VOLUME=$VOLUME
     RESERVE=$RESERVE
     ADDRESS=${ADDRESS}
-    NETMASK=${NETMASK}
     GATEWAY=${GATEWAY}
     NAMESERVER=${NAMESERVER}
     HOSTNAME=${HOSTNAME}
@@ -637,7 +636,7 @@ show_var ()
     LOG=$LOG " |
     pr -J -w 78 -t --columns=2 |
     gawk '{printf(" %-39s %-39s\n", $1, $2)}'
-    echo " ARRAY=(${ARRAY[@]})"
+    echo " ARRAY=(${ARRAY[*]})"
 } # show_var ()
 
 mb_to_cyl ()
@@ -645,31 +644,32 @@ mb_to_cyl ()
     echo $((($1*1024*1024)/CS))
 }
 
+chrooted_procs ()
+{
+    echo Remaining chrooted procs ...
+    find /proc/[0-9]* -maxdepth 1 -name root -lname $TARGET -exec file {} + 2>/dev/null |
+    grep -E "[0-9]" && [ $((--LOOP)) -gt 0 ]
+}
+
 umount_target ()
 {
     [ -n "$VERBOSE" ] && echo "Umount Target start."
     LOOP=3
     echo Finding chrooted procs ...
-    find /proc/[0-9]* -maxdepth 1 -name root -lname $TARGET  2>/dev/null |
-    xargs -r file
+    find /proc/[0-9]* -maxdepth 1 -name root -lname $TARGET -exec file {} + 2>/dev/null
     find /proc/[0-9]* -maxdepth 1 -name root -lname $TARGET 2>/dev/null |
     grep -Eo "[0-9]+" |
     xargs -r ps wwu
-    while
-        echo Remaining chrooted procs ...
-        find /proc/[0-9]* -maxdepth 1 -name root -lname $TARGET 2>/dev/null |
-        xargs -r file |
-        grep -E "[0-9]" && [ $((--LOOP)) -gt 0 ]
-    do
+    while chrooted_procs; do
         echo Killing chrooted procs ...
         find /proc/[0-9]* -maxdepth 1 -name root -lname $TARGET 2>/dev/null |
         grep -Eo "[0-9]+" |
-        if 
-            [ $((--LOOP)) -eq 1 ] 
-        then 
-            xargs -r kill -9 
-        else 
-            xargs -r kill 
+        if
+            [ $((--LOOP)) -eq 1 ]
+        then
+            xargs -r kill -9
+        else
+            xargs -r kill
         fi
     done
     awk "/${TARGET//\//\\/}/ {print \$2}" /proc/mounts |
@@ -679,14 +679,14 @@ umount_target ()
     [ -n "$VERBOSE" ] && echo "Umount Target finish."
 } # umount_target ()
 
-check_space () 
+check_space ()
 {
     [ -n "$VERBOSE" ] && echo "Check Space start."
     if [ $VOLUME -gt $EXTENT ] && $PARTITION; then
         echo "
         Disk is too small. Disk size should be more then $((VOLUME+RESERVE))
         Mb. Can not proceed. Adjust partition's size or do partitioning manual
-        and use -p option.  
+        and use -p option.
         "
         show_var
         echo "
@@ -698,7 +698,7 @@ check_space ()
     [ -n "$VERBOSE" ] && echo "Check Space finish."
 } # check_space ()
 
-start_warning () 
+start_warning ()
 {
     if ! $NO_WARNING; then
         WIDTH=${COLUMNS:=75}
@@ -709,19 +709,21 @@ start_warning ()
             VARS=""
             HEIGHT=15
         fi
-        dialog --colors --no-collapse --defaultno --yesno " \Zb\Z4Install Debain GNU/Linux\Zn\ZB
+        dialog --colors --no-collapse --defaultno --yesno " \Zb\Z4Install \
+            Debain GNU/Linux\Zn\ZB
 
 $VARS
 
- \Zb\Z1WARNING!\Zn\ZB This will destroy all data on the hard disks: 
+    \Zb\Z1WARNING!\Zn\ZB This will destroy all data on the hard disks:
 
- \Zb\Z5$(if [ ${#ARRAY[@]} -gt 1 ]; then echo ${ARRAY[@]}; else echo $DEVICE; fi)\Zn\ZB
+    \Zb\Z5$(if [ ${#ARRAY[@]} -gt 1 ]; then echo "${ARRAY[@]}"; else \
+        echo "$DEVICE"; fi)\Zn\ZB
 
- Are Your sure to continue?  " $HEIGHT $WIDTH || exit
-    fi 
+    Are Your sure to continue?  " $HEIGHT $WIDTH || exit
+    fi
 } # start_warning ()
 
-start_head () 
+start_head ()
 {
     echo "
     Starting with parameters:
@@ -729,7 +731,7 @@ start_head ()
     show_var
 
     echo "
-    --=== Starting $(basename $0) at $(date), elapsed $SECONDS seconds. ===--
+    --=== Starting $(basename "$0") at $(date), elapsed $SECONDS seconds. ===--
     "
     [ -d $TARGET ] || mkdir $VERBOSE $TARGET
 } # start_head ()
@@ -744,58 +746,58 @@ clean_space ()
         invoke-rc.d lvm2 restart
 
         lvs --noheadings -o vg_name,lv_name $GROUP |
-        while read VG LV; do
-            lvremove $VERBOSE -f -f ${VG}/${LV}
+        while read -r VG LV; do
+            lvremove $VERBOSE -f -f "${VG}"/"${LV}"
         done
 
         vgs --noheadings -o vg_name $GROUP |
-        while read VG; do
-            vgremove $VERBOSE -f -f $VG
+        while read -r VG; do
+            vgremove $VERBOSE -f -f "$VG"
         done
 
-        pvs --noheadings -o pv_name ${DEVICE}* ${CORE}* ${RAID}* \
-            $(echo -n ${ARRAY[@]} | sed 's/\([^ ]\+\)/\1*/g') |
-        while read PV; do
-            pvremove $VERBOSE -f -f $PV
+        pvs --noheadings -o pv_name "${DEVICE}"* ${CORE}* ${RAID}* \
+            "$(echo -n "${ARRAY[@]}" | sed 's/\([^ ]\+\)/\1*/g')" |
+        while read -r PV; do
+            pvremove $VERBOSE -f -f "$PV"
         done
-        if { [ -z "$MDADM" ] && 
-           grep -q "${DEVICE#/dev/}" /proc/mdstat; } ||
-           $CREATE; then
+        if { [ -z "$MDADM" ] &&
+            grep -q "${DEVICE#/dev/}" /proc/mdstat; } ||
+            $CREATE; then
             invoke-rc.d mdadm-raid stop
-            mdadm $VERBOSE -E $DEVICE &&
-            mdadm $VERBOSE --zero-superblock $DEVICE
+            mdadm $VERBOSE -E "$DEVICE" &&
+            mdadm $VERBOSE --zero-superblock "$DEVICE"
         fi
         # stop raid 
         mdadm -D $CORE $VERBOSE  && mdadm -S $CORE $VERBOSE
-        mdadm -D $DEVICE $VERBOSE && mdadm -S $DEVICE $VERBOSE
+        mdadm -D "$DEVICE" $VERBOSE && mdadm -S "$DEVICE" $VERBOSE
         mdadm -D $RAID $VERBOSE && mdadm -S $RAID $VERBOSE
         # remove partitions
-        for MEMBER in ${DEVICE} ${ARRAY[@]}; do
-            mdadm $VERBOSE -E ${MEMBER} &&
-            mdadm $VERBOSE --zero-superblock ${MEMBER}
+        for MEMBER in ${DEVICE} "${ARRAY[@]}"; do
+            mdadm $VERBOSE -E "${MEMBER}" &&
+            mdadm $VERBOSE --zero-superblock "${MEMBER}"
             # To insure there are no file system do wipe first 4 sectors on
             # every partition
-            for BLOCK in $(ls $MEMBER?*); do
-                mdadm $VERBOSE -E ${BLOCK} &&
-                mdadm $VERBOSE --zero-superblock ${BLOCK}
+            for BLOCK in "$MEMBER"?*; do
+                mdadm $VERBOSE -E "${BLOCK}" &&
+                mdadm $VERBOSE --zero-superblock "${BLOCK}"
                 echo "Wipe $BLOCK"
-                dd if=/dev/zero of=$BLOCK count=4
+                dd if=/dev/zero of="$BLOCK" count=4
             done
-            parted -sm $MEMBER mklabel gpt
+            parted -sm "$MEMBER" mklabel gpt
             sleep 1
-            partx -d $MEMBER
-            parted -sm $MEMBER print |
+            partx -d "$MEMBER"
+            parted -sm "$MEMBER" print |
             awk -F: '/^[0-9]+:/ {print $1}' |
-            while read POINT; do
-                parted -s $MEMBER rm $POINT
-                rm -f ${MEMBER}${POINT}
+            while read -r POINT; do
+                parted -s "$MEMBER" rm "$POINT"
+                rm -f "${MEMBER}""${POINT}"
             done
-            partx -d $MEMBER
+            partx -d "$MEMBER"
             # To insure there are no partition table, do wipe first 4
             # sectors on every disk
-            mdadm $VERBOSE -E ${MEMBER} &&
-            mdadm $VERBOSE --zero-superblock ${MEMBER}
-            dd if=/dev/zero of=$MEMBER count=512
+            mdadm $VERBOSE -E "${MEMBER}" &&
+            mdadm $VERBOSE --zero-superblock "${MEMBER}"
+            dd if=/dev/zero of="$MEMBER" count=512
         done
     fi
     echo "Clean Space finish"
@@ -817,13 +819,13 @@ create_space ()
             if $CREATE; then
                 echo yes |
                 mdadm -C $CORE -e 0 -x $SPARE -a part \
-                    -n $((${#ARRAY[@]}-$SPARE)) \
-                    -l mirror $VERBOSE ${ARRAY[@]}
+                    -n $((${#ARRAY[@]}-SPARE)) \
+                    -l mirror $VERBOSE "${ARRAY[@]}"
                 DEVICE=$CORE
             fi
-            POOL=($DEVICE)
+            POOL=("$DEVICE")
         else
-            POOL=(${ARRAY[@]})
+            mapfile -t -d " " POOL <<< "${ARRAY[@]}"
         fi
         PART="${DEVICE/$PART%*[0-9_]/${DEVICE}p}"
 
@@ -832,64 +834,64 @@ create_space ()
         ###############################################
 
         # partitioning
-        for MEMBER in ${POOL[@]}; do
-            [ -n "$VERBOSE" ] && echo Start partitioning  $MEMBER  ...
+        for MEMBER in "${POOL[@]}"; do
+            [ -n "$VERBOSE" ] && echo Start partitioning  "$MEMBER"  ...
             if ! $STRIPE; then
-                extent_size=$(mb_to_cyl $EXTENT) 
-                extent_end=$((BIOS+EFI+$extent_size)) 
-                parted $MEMBER <<-PARTED
+                extent_size=$(mb_to_cyl $EXTENT)
+                extent_end=$((BIOS+EFI+extent_size))
+                parted "$MEMBER" <<-PARTED
                     mklabel gpt
                     unit cyl
                     mkpart primary ext2 0 $BIOS
                     set 1 bios_grub on
                     mkpart primary fat32 $BIOS $((BIOS+EFI))
                     mkpart primary ext2 $((BIOS+EFI)) $extent_end
-                    set 3 boot on
+                    set 2 boot on
                     quit
-				PARTED
+PARTED
             else
-                parted -s $MEMBER mklabel gpt
-                boot_size=$(mb_to_cyl $BOOT) 
-                boot_end=$((BIOS+EFI+$boot_size))
+                parted -s "$MEMBER" mklabel gpt
+                boot_size=$(mb_to_cyl $BOOT)
+                boot_end=$((BIOS+EFI+boot_size))
                 extent_end=$(parted -sm $DEVICE unit cyl print |
                     awk -F: -v NODE=$DEVICE '{
                         if ($1 == NODE) print gensub("cyl", "", 1, $2)
                         }')
-                parted $MEMBER <<-PARTED
+                parted "$MEMBER" <<-PARTED
                     mklabel gpt
                     unit cyl
                     mkpart primary ext2 0 $BIOS
                     set 1 bios_grub on
                     mkpart primary fat32 $BIOS $((BIOS+EFI))
                     mkpart primary ext2 $((BIOS+EFI)) $boot_end
-                    set 3 boot on
+                    set 2 boot on
                     mkpart primary ext2 $boot_end  $extent_end
                     quit
-				PARTED
+PARTED
                 sleep 1
-                partx -a $MEMBER
-                for BLOCK in $(ls $MEMBER?*); do
-                    mdadm $VERBOSE -E ${BLOCK} &&
-                    mdadm $VERBOSE --zero-superblock ${BLOCK}
+                partx -a "$MEMBER"
+                for BLOCK in "$MEMBER"?*; do
+                    mdadm $VERBOSE -E "${BLOCK}" &&
+                    mdadm $VERBOSE --zero-superblock "${BLOCK}"
                     echo "Wipe $BLOCK"
                     #dd if=/dev/zero of=$BLOCK count=512
                 done
             fi
-            [ -n "$VERBOSE" ] && echo Finish partitioning  $MEMBER  ...
+            [ -n "$VERBOSE" ] && echo Finish partitioning  "$MEMBER"  ...
         done # for MEMBER in ${POOL[@]}; do
 
         # create double raid arrays
         if $STRIPE && $CREATE; then
             echo yes |
             mdadm -C $CORE -x $SPARE -a md \
-                -n $((${#ARRAY[@]}-$SPARE)) \
+                -n $((${#ARRAY[@]}-SPARE)) \
                 -l mirror $VERBOSE \
-                $(echo -n ${ARRAY[@]} | sed 's/\([^ ]\+\)/\13/g')
+                "$(echo -n "${ARRAY[@]}" | sed 's/\([^ ]\+\)/\13/g')"
             DEVICE=$CORE
             mdadm -C $RAID -x $SPARE -a md \
-                -n $((${#ARRAY[@]}-$SPARE)) \
+                -n $((${#ARRAY[@]}-SPARE)) \
                 -l $LEVEL $VERBOSE \
-                $(echo -n ${ARRAY[@]} | sed 's/\([^ ]\+\)/\14/g')
+                "$(echo -n "${ARRAY[@]}" | sed 's/\([^ ]\+\)/\14/g')"
         fi
 
         ############################
@@ -903,29 +905,29 @@ create_space ()
             sleep 2
             pvcreate -f -f -y $VERBOSE ${PART}3 || exit
             vgcreate $VERBOSE $GROUP ${PART}3
-            lvcreate $VERBOSE -L ${BOOT} -n boot $GROUP
+            lvcreate $VERBOSE -y -L ${BOOT} -n boot $GROUP
         else
             pvcreate -f -f -y $VERBOSE $RAID || exit
             vgcreate $VERBOSE $GROUP $RAID
         fi
-        lvcreate $VERBOSE -L ${ROOT} -n apex $GROUP
-        lvcreate $VERBOSE -L ${USR} -n usr $GROUP
-        lvcreate $VERBOSE -L ${SWAP} -n swp $GROUP
-        lvcreate $VERBOSE -L ${TMP} -n tmp $GROUP
+        lvcreate $VERBOSE -y -L "${ROOT}" -n apex $GROUP
+        lvcreate $VERBOSE -y -L "${USR}" -n usr $GROUP
+        lvcreate $VERBOSE -y -L ${SWAP} -n swp $GROUP
+        lvcreate $VERBOSE -y -L ${TMP} -n tmp $GROUP
 
         for VOL in var home opt srv; do
             EXTENT=$(vgdisplay -c $GROUP | gawk -F: '{print $13*$16}')
             eval SIZE=\$${VOL}
-            [ $((SIZE*1024)) -gt $EXTENT ] && SIZE=$((EXTENT/1024))
-            [ $SIZE -gt 0 ] && lvcreate $VERBOSE -L ${SIZE} -n $VOL $GROUP
+            [ $((SIZE*1024)) -gt "$EXTENT" ] && SIZE=$((EXTENT/1024))
+            [ $SIZE -gt 0 ] && lvcreate $VERBOSE -y -L ${SIZE} -n $VOL $GROUP
         done
         if ! $STRIPE; then
             mkfs.vfat $VERBOSE ${PART}2
         else
             mkfs $VERBOSE -L boot -t $FS_TYPE $CORE
         fi
-        for POINT in /dev/$GROUP/*; do
-            mkfs $VERBOSE -L $(basename $POINT) -t $FS_TYPE $POINT
+        for POINT in /dev/"$GROUP"/*; do
+            mkfs $VERBOSE -L "$(basename "$POINT")" -t $FS_TYPE "$POINT"
         done
 
         ######################################
@@ -943,7 +945,7 @@ create_space ()
             mount $VERBOSE /dev/$GROUP/boot "${TARGET}/boot"
             mkdir "${TARGET}/boot/efi"
             mount $VERBOSE ${PART}2 "${TARGET}/boot/efi"
-        else 
+        else
             mount $VERBOSE $CORE "${TARGET}/boot"
         fi
         ###################
@@ -953,15 +955,15 @@ create_space ()
         FSTAB="proc /proc  proc defaults 0 0
         /dev/$GROUP/apex / $FS_TYPE defaults 0 1"
         # Add root (/) & boot records depends on raid level to fstab
-       if $STRIPE; then
+        if $STRIPE; then
             FSTAB="${FSTAB}
             $CORE /boot $FS_TYPE defaults 0 2"
         fi
-        for POINT in /dev/$GROUP/*; do
-            if [ -d "${TARGET}/$(basename ${POINT})" ]; then
-                mount $VERBOSE $POINT ${TARGET}/$(basename ${POINT})
+        for POINT in /dev/"$GROUP"/*; do
+            if [ -d "${TARGET}/$(basename "${POINT}")" ]; then
+                mount $VERBOSE "$POINT" ${TARGET}/"$(basename "${POINT}")"
                 FSTAB="${FSTAB}
-        $POINT /$(basename ${POINT} ) $FS_TYPE defaults 0 2"
+        $POINT /$(basename "${POINT}" ) $FS_TYPE defaults 0 2"
             fi
         done
         FSTAB="${FSTAB}
@@ -973,9 +975,9 @@ create_space ()
         gawk -v TARGET=$TARGET '{
             if ($3 ~ TARGET) {
                 gsub(TARGET,"", $3)
-                getid="dumpe2fs "$1" -fh |\
-                       grep \"Filesystem UUID:\" |\
-                       sed -r \"s/Filesystem UUID:[[:blank:]]+//\""
+                getid = "dumpe2fs "$1" -fh |"
+                getid = getid "grep \"Filesystem UUID:\" |"
+                getid = getid "sed -r \"s/Filesystem UUID:[[:blank:]]+//\""
                 getid | getline UUID
                 if ($3 == "") {
                     gsub("","/",$3)
@@ -989,36 +991,39 @@ create_space ()
         parted -sm $DEVICE print |
         awk -F: -v PART=$PART '/swap/ {print PART$1, "none swap sw 0 0"}'
         )"
-        ROOT_DEVICE=$(awk -v TARGET=$TARGET '{if ($2 == TARGET) print $1}' /proc/mounts )
+        ROOT_DEVICE=$(
+            awk -v TARGET=$TARGET '{if ($2 == TARGET) print $1}' /proc/mounts)
     fi # if $PARTITION
 } # create_space ()
 
-install_base_system () 
+install_base_system ()
 {
     FSTAB="${FSTAB}
-    sysfs  /sys     sysfs    defaults                                              0 0
-    udev   /dev     devtmpfs defaults                                              0 0
-    devpts /dev/pts devpts   rw,nosuid,noexec,relatime,gid=5,mode=620,ptmxmode=000 0 0"
+    sysfs  /sys     sysfs    defaults                         0 0
+    udev   /dev     devtmpfs defaults                         0 0
+    devpts /dev/pts devpts   \
+        rw,nosuid,noexec,relatime,gid=5,mode=620,ptmxmode=000 0 0"
 
     #########################
     ## INSTALL BASE SYSTEM ##
     #########################
 
     echo "Installing Base System ..."
-    if ! $DEBOOTSTRAP $BSOPT --arch=$ARCH $SUITE $TARGET $MIRROR; then
+    if ! $DEBOOTSTRAP ${VERBOSE:+--verbose} "${BSOPT[@]}" --arch="$ARCH" "$SUITE" $TARGET "$MIRROR"; then
         echo "Base System installation failed. Exiting ..."
         exit 1
     fi
 } # install_base_system () 
 
-configure_system () 
+configure_system ()
 {
     ########################
     ## MAIN CONFIGURATION ##
     ########################
 
     [ -r /etc/apt/trusted.gpg.d/inist-trusted.gpg ] &&
-    cp $VERBOSE -a /etc/apt/trusted.gpg.d/inist-trusted.gpg ${TARGET}/etc/apt/trusted.gpg.d
+    cp $VERBOSE -a /etc/apt/trusted.gpg.d/inist-trusted.gpg \
+        ${TARGET}/etc/apt/trusted.gpg.d
 
     echo "$FSTAB" |
     column -t > ${TARGET}/etc/fstab
@@ -1030,7 +1035,6 @@ configure_system ()
 
     iface $IFACE inet static
         address $ADDRESS
-        netmask $NETMASK
         gateway $GATEWAY
 
     " > ${TARGET}/etc/network/interfaces
@@ -1040,7 +1044,7 @@ configure_system ()
 
     echo "
     127.0.0.1 localhost
-    $ADDRESS ${HOSTNAME}.${DOMAIN} ${HOSTNAME}
+    ${ADDRESS%/*} ${HOSTNAME}.${DOMAIN} ${HOSTNAME}
     " > ${TARGET}/etc/hosts
 
     echo "
@@ -1070,25 +1074,26 @@ configure_system ()
     column -t > ${TARGET}/etc/kernel-img.conf
 
     echo "$TIMEZONE" > ${TARGET}/etc/timezone
-    cp $VERBOSE ${TARGET}/usr/share/zoneinfo/$TIMEZONE ${TARGET}/etc/localtime 
+    cp $VERBOSE ${TARGET}/usr/share/zoneinfo/"$TIMEZONE" ${TARGET}/etc/localtime
 
     if type -p rpg; then
-        PASSWORD=$(echo $(rpg -r 1 -m 6 -x 10))
+        PASSWORD=$(rpg -r 1 -m 6 -x 10 | tr -d " \n")
     elif type -p apg; then
-        PASSWORD=$(echo $(apg -MCNL -n 1 -m 6 -x 10))
+        PASSWORD=$(apg -MCNL -n 1 -m 6 -x 10)
     else
         HEAP=(b d f k m n p r s t v z e u a i
-              B D F K M N P R S T V Z E U A I
-              2 3 4 5 6 7 8 9)
-        for INDEX in $(seq $((6+RANDOM % 4))); do
-           PASSWORD=${PASSWORD}$(printf "%s" ${HEAP[$((RANDOM % ${#HEAP[@]}))]})
+            B D F K M N P R S T V Z E U A I
+            2 3 4 5 6 7 8 9)
+        for _ in $(seq $((6+RANDOM % 4))); do
+            PASSWORD=${PASSWORD}$(
+                printf "%s" "${HEAP[$((RANDOM % ${#HEAP[@]}))]}")
         done
     fi
     [ -z "$PASSWORD" ] &&
     PASSWORD=${HOSTNAME}
 } # configure_system ()
 
-install_packages () 
+install_packages ()
 {
     #########################################
     ## INSTALL AND CONFIGURE MAIN PACKAGES ##
@@ -1114,26 +1119,30 @@ install_packages ()
         Extracting attached files ...
     "
     echo "$ATTACHMENTS" | grep -v '^$' |
-    while read FILE MODE; do
-        [ -d $(dirname ${TARGET}$FILE) ] ||
-        mkdir $VERBOSE -p $(dirname ${TARGET}$FILE)
+    while read -r FILE MODE; do
+        [ -d "$(dirname ${TARGET}"$FILE")" ] ||
+        mkdir $VERBOSE -p "$(dirname ${TARGET}"$FILE")"
         sed -e "
             1,\%^###  BEGIN $FILE  ###$%d
             \%^###  END $FILE  ###$%,\$d
-        " $0 >> ${TARGET}$FILE
-        chmod $VERBOSE $MODE ${TARGET}$FILE
-        ls -l ${TARGET}$FILE
+        " "$0" >> ${TARGET}"$FILE"
+        chmod $VERBOSE "$MODE" ${TARGET}"$FILE"
+        ls -l ${TARGET}"$FILE"
     done
 
-    if [ -e /sys/firmware/efi ]; then 
+    if [ -e /sys/firmware/efi ]; then
         GRUB=grub-efi
     else
         GRUB=grub-pc
     fi
 
+    # make udev db available in chroot for lvm used by grub
+    mkdir ${TARGET}/run/udev
+    mount --bind /run/udev ${TARGET}/run/udev
+
     chroot ${TARGET} su - <<-EOF
     eval  $DEBUG && set -x -v
-    if ! [ -d /run/lock ]; then 
+    if ! [ -d /run/lock ]; then
         mkdir $VERBOSE -p /run/lock
         chmod $VERBOSE ugo+wt /run/lock
     fi
@@ -1243,8 +1252,8 @@ install_packages ()
 
     cp $VERBOSE -a /etc/ssh/sshd_config{,.dpkg-dist}
     sed -e 's/.*#.*\(ListenAddress[[:blank:]]\+0\.0\.0\.0\)/\1/' \
-         -e 's/^[^#]*\(ListenAddress[[:blank:]]\+::\)/#\1/' \
-         -i /etc/ssh/sshd_config
+        -e 's/^[^#]*\(ListenAddress[[:blank:]]\+::\)/#\1/' \
+        -i /etc/ssh/sshd_config
 
     cd /etc/skel/
     cp $VERBOSE -a .lynxrc /root
@@ -1261,7 +1270,7 @@ install_packages ()
     useradd -m -c "System Administrator" $HOSTNAME
     echo -e  "$PASSWORD\n$PASSWORD" 2>&1|
     passwd $HOSTNAME
-    passwd -l root
+    # passwd -l root
 
     fortune | mail -s "First Mail" root
     fortune | mail -s "First Mail" $HOSTNAME
@@ -1276,31 +1285,34 @@ install_packages ()
         SYSLOG_CONF=/etc/rsyslog.conf
     fi
     cp $VERBOSE -a \$SYSLOG_CONF{,.dpkg-dist}
-    sed -i 's/\*\.\*/&;kern.!=warning/g' \$SYSLOG_CONF 
+    sed -i 's/\*\.\*/&;kern.!=warning/g' \$SYSLOG_CONF
     sed -i 's/kern\.\*/&;kern.!=warning/g' \$SYSLOG_CONF
     sed -i 's/\*\.=warn/&;kern.!=warning/g' \$SYSLOG_CONF
     sed -i 's/\*\.warn/&;kern.!=warning/g' \$SYSLOG_CONF
     echo 'kern.=warning  /var/log/kern.warning' >> \$SYSLOG_CONF
 
     cd /boot/grub
-    if [ -n "$BOOT_SPLASH" ]; then 
+    if [ -n "$BOOT_SPLASH" ]; then
         wget -nv $VERBOSE -P /boot/grub \$(echo $BOOT_SPLASH)
-        if file /boot/grub/\$(basename $BOOT_SPLASH) 2>&1| grep -qiw image; then
+        if file /boot/grub/\$(basename $BOOT_SPLASH) 2>&1| grep -qiw image;\
+        then
             ln $VERBOSE -sf \$(basename $BOOT_SPLASH)  moreblue-orbit-grub.tga
         fi
     else
-        ln $VERBOSE -sf /usr/share/images/grub/Lake_mapourika_NZ.tga moreblue-orbit-grub.tga
+        ln $VERBOSE -sf /usr/share/images/grub/Lake_mapourika_NZ.tga \
+            moreblue-orbit-grub.tga
         cd -
     fi
 
     chmod 755 /etc/grub.d/06_local_theme
-    sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)quiet\(.*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1 \2"/' /etc/default/grub
+    sed 's/\(GRUB_CMDLINE_LINUX_DEFAULT=\)"\(.*\)quiet\(.*\)"/\1"\2 \3"/' \
+        /etc/default/grub
 
     chmod $VERBOSE ugo+rx /usr/lib/cgi-bin/quote
-	EOF
+EOF
 } # install_packages ()
 
-install_boot_loader () 
+install_boot_loader ()
 {
     # We should mount boot device in chroot environment to to install boot loader
     # Without sh it stopped at this point
@@ -1310,8 +1322,9 @@ install_boot_loader ()
     CYCLE=12
 
     [ -n "$MDADM" ] &&
-    mdadm -D $DEVICE && 
-    while ! mdadm -D $DEVICE | grep -q "State : clean" && [ $((CYCLE--)) -gt 0 ]; do
+    mdadm -D $DEVICE &&
+    while ! mdadm -D $DEVICE |\
+        grep -q "State : clean" && [ $((CYCLE--)) -gt 0 ]; do
         sleep \$SLEEP
         if [ \$CYCLE -lt 1 ]; then
             echo "Don't wait anymore for raid sync"
@@ -1320,23 +1333,23 @@ install_boot_loader ()
     done
     if ! $STRIPE; then
         [ -n "$MDADM" ] &&
-        mdadm -D $DEVICE && 
+        mdadm -D $DEVICE &&
         echo "(md0) $DEVICE" > /boot/grub/device.map
         mount $VERBOSE ${PART}2 /boot/efi
         grub-install $DEVICE
         if [ "$GRUB" = "grub-efi" ]; then
-            mkdir $VERBOSE -p /boot/efi/EFI/boot 
+            mkdir $VERBOSE -p /boot/efi/EFI/boot
             cp $VERBOSE -a /boot/efi/EFI/{debian/grub,boot/boot}x64.efi
         fi
     else
-        case $GRUB in 
+        case $GRUB in
             grub-efi)
                 mkdir $VERBOSE /boot/efi
                 for MEMBER in ${ARRAY[@]}; do
                     mkfs.vfat $VERBOSE \${MEMBER}2
                     mount $VERBOSE \${MEMBER}2 /boot/efi
                     grub-install \${MEMBER}
-                    mkdir $VERBOSE -p /boot/efi/EFI/boot 
+                    mkdir $VERBOSE -p /boot/efi/EFI/boot
                     cp $VERBOSE -a /boot/efi/EFI/{debian/grub,boot/boot}x64.efi
                     umount $VERBOSE /boot/efi
                 done
@@ -1350,31 +1363,31 @@ install_boot_loader ()
         esac
     fi
     update-grub
-	EOB
+EOB
 } # install_boot_loader ()
 
-save_install_list () 
+save_install_list ()
 {
-    [ -d /etc/$SELF_NAME/install ] &&
-    tar cf - $VERBOSE -C /etc/$SELF_NAME/install . |
+    [ -d /etc/install-debian/install ] &&
+    tar cf - $VERBOSE -C /etc/install-debian/install . |
     tar xf - -C $TARGET
 } # save_install_list () 
 
-finish_foot () 
+finish_foot ()
 {
     echo "
-    --=== Finish $(basename $0) at $(date), elapsed $SECONDS seconds. ===--
+    --=== Finish $(basename "$0") at $(date), elapsed $SECONDS seconds. ===--
     "
 } # finish_foot () 
 
-save_log () 
+save_log ()
 {
-    [ -f $LOG ] &&
-    cp -a $LOG $TARGET/root
+    [ -f "$LOG" ] &&
+    cp -a "$LOG" $TARGET/root
     umount_target
 } # save_log ()
 
-send_password () 
+send_password ()
 {
     #############################
     ## SEND LOGIN AND PASSWORD ##
@@ -1385,13 +1398,13 @@ send_password ()
     User:     $HOSTNAME
     Password: $PASSWORD
 
-    " | 
-    if [ -f $LOG ]; then
-        cat - $LOG
-    else 
-        cat 
+    " |
+    if [ -f "$LOG" ]; then
+        cat - "$LOG"
+    else
+        cat
     fi |
-    mail -s "New Debian Host" $MAILTO
+    mail -s "New Debian Host" "$MAILTO"
 
     echo "
     System Administrator account:
@@ -1401,7 +1414,7 @@ send_password ()
     sent to $MAILTO
 
     Root account blocked. To become root:
-        sudo -u root su - 
+        sudo -u root su -
 
     "
 } # send_password () 
@@ -1428,7 +1441,7 @@ save_log
 send_password
 exit $?
 
-cat > /dev/null <<-EOT
+cat > /dev/null <<EOT
 ###  BEGIN /etc/profile.d/local.sh  ###
 #
 PATH=/opt/bin:$PATH
@@ -1594,31 +1607,31 @@ echo "Content-Type: text/html; charset=utf-8
 
 <html>
 <head>
-  <title>
-  $(fortune -sn 60 ru .)
-  </title>
+    <title>
+    $(fortune -sn 60 ru .)
+    </title>
 </head>
 <body>
-  <center>
-  <h2><big>
-  <a href="">$(fortune -sn 60 ru .)</a>
-  <br>
-  </big></h2>
+    <center>
+    <h2><big>
+    <a href="">$(fortune -sn 60 ru .)</a>
+    <br>
+    </big></h2>
 "
 fortune ru . | sed 's/$/\<br\>/'
 echo "
-  </center>
+    </center>
 </body>
 </html>
 "
 ###  END /usr/lib/cgi-bin/quote  ###
 
 ###  BEGIN /var/www/index.shtml  ###
-  <!--#include virtual="/cgi-bin/quote" -->
+    <!--#include virtual="/cgi-bin/quote" -->
 ###  END /var/www/index.shtml  ###
 
 ###  BEGIN /etc/X11/Xresources/x11-local  ###
-! $Id$
+! \$Id$
 URxvt.background: DarkSlateGray
 URxvt.foreground: Wheat
 URxvt.geometry: 100x45
@@ -1632,11 +1645,10 @@ XLock.font: -sony-fixed-medium-r-*-*-24-*-*-*-*-*-*
 
 ###  BEGIN /root/.muttrc  ###
 set folder = /home/$HOSTNAME/Mail
-set mbox=$folder/inbox
-set record=$folder/sent
+set mbox=\$folder/inbox
+set record=\$folder/sent
 ###  END /root/.muttrc  ###
 
 ###  BEGIN   ###
 ###  END   ###
 EOT
-
