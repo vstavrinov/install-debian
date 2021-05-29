@@ -91,7 +91,7 @@ init_variables ()
                     if ($4 == DEVICE) print $3
                     }' /proc/partitions)
         mapfile -t ARRAY < <(gawk -v SIZE="$SIZE" '{
-                    if ($3 == SIZE) printf("%s ", "/dev/"$4)
+                    if ($3 == SIZE) printf("%s\n", "/dev/"$4)
                     }' /proc/partitions)
         DEVICE=/dev/$DEVICE
         if [ ${#ARRAY[@]} -lt 2 ]; then
@@ -834,7 +834,7 @@ create_space ()
         ###############################################
 
         # partitioning
-        for MEMBER in "${POOL[@]}"; do
+        for MEMBER in ${POOL[@]}; do
             [ -n "$VERBOSE" ] && echo Start partitioning  "$MEMBER"  ...
             if ! $STRIPE; then
                 extent_size=$(mb_to_cyl $EXTENT)
@@ -886,12 +886,12 @@ PARTED
             mdadm -C $CORE -x $SPARE -a md \
                 -n $((${#ARRAY[@]}-SPARE)) \
                 -l mirror $VERBOSE \
-                "$(echo -n "${ARRAY[@]}" | sed 's/\([^ ]\+\)/\13/g')"
+                $(echo -n "${ARRAY[@]}" | sed 's/\([^ ]\+\)/\13/g')
             DEVICE=$CORE
             mdadm -C $RAID -x $SPARE -a md \
                 -n $((${#ARRAY[@]}-SPARE)) \
                 -l $LEVEL $VERBOSE \
-                "$(echo -n "${ARRAY[@]}" | sed 's/\([^ ]\+\)/\14/g')"
+                $(echo -n "${ARRAY[@]}" | sed 's/\([^ ]\+\)/\14/g')
         fi
 
         ############################
@@ -1334,7 +1334,7 @@ install_boot_loader ()
     if ! $STRIPE; then
         [ -n "$MDADM" ] &&
         mdadm -D $DEVICE &&
-        echo "(md0) $DEVICE" > /boot/grub/device.map
+        echo "(hd0) $DEVICE" > /boot/grub/device.map
         mount $VERBOSE ${PART}2 /boot/efi
         grub-install $DEVICE
         if [ "$GRUB" = "grub-efi" ]; then
