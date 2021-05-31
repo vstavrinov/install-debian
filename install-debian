@@ -1010,6 +1010,8 @@ install_base_system ()
         echo "Base System installation failed. Exiting ..."
         exit 1
     fi
+    mkdir $VERBOSE $TARGET/etc/modprobe.d
+    echo 'blacklist floppy' > $TARGET/etc/modprobe.d/blacklist-floppy.conf
 } # install_base_system () 
 
 configure_system ()
