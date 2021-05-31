@@ -799,7 +799,7 @@ clean_space ()
             mdadm $VERBOSE --zero-superblock "${MEMBER}"
             dd if=/dev/zero of="$MEMBER" count=512
         done
-    fi
+    fi # if $PARTITION
     echo "Clean Space finish"
     [ "$ACTION" = "claen" ] && exit
 }
@@ -975,8 +975,7 @@ PARTED
         gawk -v TARGET=$TARGET '{
             if ($3 ~ TARGET) {
                 gsub(TARGET,"", $3)
-                getid = "blkid -s UUID -o value "$1""
-                getid | getline UUID
+                "blkid -s UUID -o value "$1"" | getline UUID
                 if ($3 == "") {
                     gsub("","/",$3)
                     print "UUID="UUID, $3, $5, "defaults,errors=remount-ro 0 1"
@@ -1329,7 +1328,9 @@ install_boot_loader ()
         [ -n "$MDADM" ] &&
         mdadm -D $DEVICE &&
         echo "(hd0) $DEVICE" > /boot/grub/device.map
-        mount $VERBOSE ${PART}2 /boot/efi
+        if $PARTITION; then
+            mount $VERBOSE ${PART}2 /boot/efi
+        fi
         grub-install $DEVICE
         if [ "$GRUB" = "grub-efi" ]; then
             mkdir $VERBOSE -p /boot/efi/EFI/boot
