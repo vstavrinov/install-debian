@@ -975,9 +975,7 @@ PARTED
         gawk -v TARGET=$TARGET '{
             if ($3 ~ TARGET) {
                 gsub(TARGET,"", $3)
-                getid = "dumpe2fs "$1" -fh |"
-                getid = getid "grep \"Filesystem UUID:\" |"
-                getid = getid "sed -r \"s/Filesystem UUID:[[:blank:]]+//\""
+                getid = "blkid -s UUID -o value "$1""
                 getid | getline UUID
                 if ($3 == "") {
                     gsub("","/",$3)
