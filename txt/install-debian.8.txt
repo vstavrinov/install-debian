@@ -2,17 +2,17 @@ NAME
 install-debian - Install Debian system non-interactively.
 
 SYNOPSIS
-install-debian [-lctpvdh] [-m MIRROR] [-R ROOT] [-U USR] [-B var] [-H home]
+install-debian [-ltpvdh] [-m MIRROR] [-R ROOT] [-U USR] [-B var] [-H home]
             [-O opt] [-S srv] [-I ADDRESS] [-G GATEWAY] [ -o BSOPT ] [-r LEVEL]
-            [-x SPARE] [-N HOSTNAME] [-P DOMAIN] [-E NAMESERVER] [-T MAILTO]
-            [-Z TIMEZONE] [-L LOG] [DEVICE ... ]
+            [-x SPARE] [-N HOSTNAME] [-D DOMAIN] [-E NAMESERVER] [-Z TIMEZONE]
+            [-u SUITE] [-a ARCH] [-K KERNEL] [-L LOG] [DEVICE ... ]
 
 DESCRIPTION
 This command line utility should be started from within Live CD, Network Boot or from any bootable media, other then Your system disk. Don't start it in running system from hard disk, because it may destroy Your operating system and all data on Your hard disk. It fully supports software RAID and UEFI boot.
 
 Without parameters it installs Debian onto Your largest hard disk or disk array with default settings. But You will be warned before to do any changes on the hard disk. Before actual installation use -s option to see all variables values set by default, with command line option or in config file. By default it chooses largest disk for installation. If there are more then one such largest disk of the same size, it makes RAID array: mirror from 3 and less disks and Level 10 RAID from 4 or more disks. If there are odd disks number in array, one of them becomes spare disk.
 
-Partitioning scheme supports separate partition for /boot, and separate logical volumes for root filesystem, /usr, /var, /tmp and /home, but for /opt and /srv only if their size is not zero. Also there are option to install system into single pre-mount point. In this case partitioning and mounting every part leave on Your own. After installation root password will be sent to Your mail box. You can change defaults and most settings with command line options and configuration variables, used here as option's values.
+Partitioning scheme supports separate partition for /boot, and separate logical volumes for root filesystem, /usr, /var, /tmp and /home, but for /opt and /srv only if their size is not zero. Also there are option to install system into single pre-mount point. In this case partitioning and mounting every part leave on Your own. You can change defaults and most settings with command line options and configuration variables, used here as option's values.
 
 Default allocation of disk space is minimalistic, but You can expand filesystems size at any time using lvextend and resize2fs utilities - this give You flexibility and efficiency using disk space. Though in most cases You don't need expand root filesystem, /boot and /usr, but if it is not case, then it is likely doesn't comply Filesystem Hierarchy Standard: http://www.pathname.com/fhs/ and You should move some of Your data to somewhere else. The size of / and /boot filesystems should be minimal for a reliability reasons.
 
@@ -35,13 +35,11 @@ OPTIONS
 	-H home  Volume /home size, Mb [ 1024 ]
 	-O opt   Volume /opt size, Mb [ 0 ]
 	-S srv   Volume /srv size, Mb [ 0 ]
-	-I ADDRESS  IP Address, e.g. 10.0.0.254
-	-M NETMASK  Network Mask, e.g. 255.255.255.0
+	-I ADDRESS  IP Address/mask, e.g. 10.0.0.254/24
 	-G GATEWAY  Default Gateway, e.g. 10.0.0.1
 	-N HOSTNAME  Host Name, e.g. atlant
-	-P DOMAIN  Domain, e.g. land.oz
+	-D DOMAIN  Domain, e.g. land.oz
 	-E NAMESERVER  DNS address, e.g. 10.0.0.2
-	-T MAILTO  Email address to send password to, e.g. root@localhost
 	-Z TIMEZONE  Time Zone, e.g. Europe/Moscow
 	-L LOG   Log file to output to [ install-debian.log ]
 	-l  Logging output to file [ install-debian.log ]

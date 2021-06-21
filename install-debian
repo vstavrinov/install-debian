@@ -31,7 +31,6 @@ unset GATEWAY || true
 unset HOSTNAME
 unset HOSTNAME || true
 unset LOG || true
-unset MAILTO || true
 unset MIRROR || true
 unset NAMESERVER || true
 unset ORACLE_OWNER || true
@@ -130,7 +129,6 @@ init_variables ()
     : "${DOMAIN:="oz"}"
     : "${NAMESERVER:=$(awk '/^[[:blank:]]*nameserver/ {print $2}' \
         /etc/resolv.conf | head -1)}"
-    : "${MAILTO:=root@localhost}"
     : "${TIMEZONE:=$([ -f /etc/timezone ] && cat /etc/timezone)}"
     SHOW=false
     DEBUG=false
@@ -163,8 +161,8 @@ usage ()
 
     $SELF_NAME [-ltpvdh] [-m MIRROR] [-R ROOT] [-U USR] [-B var] [-H home]
             [-O opt] [-S srv] [-I ADDRESS] [-G GATEWAY] [ -o BSOPT ] [-r LEVEL]
-            [-x SPARE] [-N HOSTNAME] [-P DOMAIN] [-E NAMESERVER] [-Z TIMEZONE]
-            [-L LOG] [DEVICE ... ]
+            [-x SPARE] [-N HOSTNAME] [-D DOMAIN] [-E NAMESERVER] [-Z TIMEZONE]
+            [-u SUITE] [-a ARCH] [-K KERNEL] [-L LOG] [DEVICE ... ]
 
     DEVICE
         device (or devices) to install to. If not specified, the biggest one
