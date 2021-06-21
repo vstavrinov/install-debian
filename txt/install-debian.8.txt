@@ -2,12 +2,10 @@ NAME
 install-debian - Install Debian system non-interactively.
 
 SYNOPSIS
-install-debian [-lctvdh] [-D DEVICE | -A ARRAY] [-r LEVEL] [-x SPARE]
-		[-R ROOT] [-U USR] [-B var] [-H home] [-O opt] [-S srv]
-		[-m MIRROR] [-u SUITE] [-a ARCH] [-o BSOPT] [-K KERNEL]
-		[-I ADDRESS] [-M NETMASK] [-G GATEWAY]
-		[-N HOSTNAME] [-P DOMAIN] [-E NAMESERVER]
-		[-T MAILTO] [-Z TIMEZONE] [-L LOG]
+install-debian [-lctpvdh] [-m MIRROR] [-R ROOT] [-U USR] [-B var] [-H home]
+            [-O opt] [-S srv] [-I ADDRESS] [-G GATEWAY] [ -o BSOPT ] [-r LEVEL]
+            [-x SPARE] [-N HOSTNAME] [-P DOMAIN] [-E NAMESERVER] [-T MAILTO]
+            [-Z TIMEZONE] [-L LOG] [DEVICE ... ]
 
 DESCRIPTION
 This command line utility should be started from within Live CD, Network Boot or from any bootable media, other then Your system disk. Don't start it in running system from hard disk, because it may destroy Your operating system and all data on Your hard disk. It fully supports software RAID and UEFI boot.
@@ -21,8 +19,7 @@ Default allocation of disk space is minimalistic, but You can expand filesystems
 This script installs only bit more packages then base system includes. The main purpose is to get bootable system. After booting new system You can install everything what You want.
 
 OPTIONS
-	-D DEVICE  Disk to install to, e.g. /dev/sda
-	-A ARRAY  Quoted list of RAID components separated by space, e.g. "/dev/sda /dev/sdb"
+    DEVICE  device (or devices) to install to. If not specified, the biggest one will be chosen.
 	-r LEVEL  Raid level (see mdadm), e.g. mirror
 	-x SPARE  Number of spare (eXtra) devices, e.g. 1
 	-m MIRROR  URL to install from, e.g. http://cdn.debian.org/debian or file:/srv/debian
