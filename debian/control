@@ -2,7 +2,7 @@ Source: install-debian
 Section: admin
 Priority: optional
 Maintainer: Vladimir Stavrinov <vstavrinov@gmail.com>
-Build-Depends: debhelper (>= 8.0.0)
+Build-Depends: debhelper (>= 10.0.0)
 Standards-Version: 3.9.5
 Homepage: https://github.com/vstavrinov/install-debian
 Vcs-Git: git://github.com/vstavrinov/install-debian.git
