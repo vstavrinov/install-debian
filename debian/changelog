@@ -2,114 +2,24 @@ install-debian (2.3.1) unstable; urgency=medium
 
   * rename config
 
- -- Vladimir Stavrinov <vstavrinov@gmail.com>  Mon, 21 Jun 2021 21:16:22 +0300
+ -- Vladimir Stavrinov <vstavrinov@gmail.com>  Mon, 21 Jun 2021 21:29:47 +0300
 
 install-debian (2.3.0) unstable; urgency=medium
 
-  * Empty upstream, native Debian package
-  * Initial blank Debian package template
-  * .
-  * .
-  * .
-  * .
-  * .
-  * .
-  * .
-  * .
-  * .
-  * .
-  * .
-  * .
-  * .
-  * .
-  * .
-  * .
-  * .
-  * .
-  * .
-  * .
-  * .
-  * .
-  * .
-  * .
-  * .
-  * Fixed typo
-  * Bug fix
-  * .
-  * Added caveats.
-  * .
-  * .
-  * Added FS_TYPE - file system type, default ext4 (was ext3)
-  * * Added caveats. * . * . * Added FS_TYPE - file system type, default ext4 (was ext3)
-  * Added caveats. * . * . * Added FS_TYPE - file system type, default ext4 (was ext3)
-  * .
-  * .
-  * Added local mirror example
-  * 
-  * Use variable for netwrok interface name Remove extra element in PATH Replace nginx config for php5-cgi with one for php5-fpm Fall back to apt-get if aptitude not available
-  * Bug fix: preventing creating array if DEVICE defined in config
-  * Default suit changed to stable.
-  * Update changelog for 2.1.6 release
-  * Update Standards-Version: to 3.9.4
-  * Update changelog for 2.1.7 release
-  * Don't call mdadm if not installed.
-  * Update changelog for 2.1.8 release
-  *  Set default value for domain name to "oz".  Rewrite all defaults definition.
-  * Update changelog for 2.1.9 release
-  *   Reformat changelog record.
-  * Added UEFI boot support. Increased reserved space.
-  * Update changelog for 2.1.10 release
-  * Upgrade Standards-Version:
-  * Update changelog for 2.2.1 release
-  * UEFI bug fixing:  - added fat partition;  - renumbering partitions and disk arrays;  - using native efi support in grub.
-  * Update changelog for 2.2.2 release
-  * Format changelog.
-  * Update changelog for 2.2.3 release
-  * Fix UEFI support. Relay on grub packages.
-  * Update changelog for 2.2.4 release
-  * Increased root file system size.
-  * Update changelog for 2.2.5 release
-  * Increased root file system size.
-  * Update changelog for 2.2.5 release
-  * Fix version number.
-  * Update changelog for 2.2.6 release
-  * Bug fixes for UEFI with RAID10
-  * Update changelog for 2.2.7 release
-  * Bug fix: missing packages (e.g. aptitude) Bug fix: escapes \$ Bug fix: mount /proc
-  * Update changelog for 2.2.8 release
-  * Bug fix: /boot was not mounted.
-  * Update changelog for 2.2.9 release
-  * Migrate to github.
-  * Update changelog for 2.2.10 release
-  * Add README.
-  * Update changelog for 2.2.11 release
-  * Fix version.
-  * Update changelog for 2.2.12 release
-  * Bug fix manual partitioning.
-  * Update changelog for 2.2.13 release
-  * refactoring
-  * Update changelog for 2.2.14 release
-  * Update changelog for 2.2.16 release
-  * bug fix: didn't work with single disk.
-  * Update changelog for 2.2.17 release
-  * bug fix: option "-A" doesn't work for multiply disks.
-  * Update changelog for 2.2.18 release
-  * Add preseed configurations for official installer.
-  * Update changelog for 2.2.19 release
-  * Fix formatting.
-  * Update changelog for 2.2.20 release
-  * Create README.md
-  * Update README.md
-  * Remove bios_grub partitions.
-  * Move to partitionable array.
-  * - fix dependencies - reduce RATE to 10 -  add quotes to variables - replace ifconfig with iproute2 -  add chrooted_procs() for killing -  apply bash styling
-  * - fix composing of the device array - get out extra dependencies - fix the device.map - remove erroneous quotes  to provide word splitting
-  * remove legacy keys
-  * fix filesystem UUID
-  * don't mount EFI partition in case of manual partitioning
-  * to blacklist floppy
   * fixing, clean up, and  local refactoring:
-  * bring documents in line with the latest code update
+
+    - refactoring clean_space
+    - resize space
+    - remove aptitiude and cdebootstrap
+    - remove -D & -A options moving their args to the end of positional parameters.
+    - rename -P option to -D
+    - remove emailing of the credentials
+    - fix  building  of debootstrap and array options
+    - fix logging
+    - remove "here documents" redirection for parted commands
+    - remove password generation.
+    - fix config filename
+    - bring documents in line with the latest code update
 
  -- Vladimir Stavrinov <vstavrinov@gmail.com>  Mon, 21 Jun 2021 20:51:09 +0300
 
