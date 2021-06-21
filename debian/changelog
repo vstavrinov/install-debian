@@ -1,3 +1,9 @@
+install-debian (2.3.1) unstable; urgency=medium
+
+  * rename config
+
+ -- Vladimir Stavrinov <vstavrinov@gmail.com>  Mon, 21 Jun 2021 21:16:22 +0300
+
 install-debian (2.3.0) unstable; urgency=medium
 
   * Empty upstream, native Debian package
