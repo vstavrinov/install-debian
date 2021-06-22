@@ -1,3 +1,9 @@
+install-debian (2.3.3) unstable; urgency=medium
+
+  * remove unused aptitude and mailutils from dependencies
+
+ -- Vladimir Stavrinov <vstavrinov@gmail.com>  Tue, 22 Jun 2021 19:51:22 +0300
+
 install-debian (2.3.2) unstable; urgency=medium
 
   * update debhelper version
