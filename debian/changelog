@@ -1,3 +1,9 @@
+install-debian (2.3.4) unstable; urgency=medium
+
+  * fix dependcies (bsdextrautils)
+
+ -- Vladimir Stavrinov <vstavrinov@gmail.com>  Wed, 23 Jun 2021 17:21:02 +0300
+
 install-debian (2.3.3) unstable; urgency=medium
 
   * remove unused aptitude and mailutils from dependencies
