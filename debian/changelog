@@ -1,3 +1,9 @@
+install-debian (2.3.5) unstable; urgency=medium
+
+  * replace bsdextrautils as not available in stable distribution with bsdmainutils
+
+ -- Vladimir Stavrinov <vstavrinov@gmail.com>  Wed, 23 Jun 2021 17:37:55 +0300
+
 install-debian (2.3.4) unstable; urgency=medium
 
   * fix dependcies (bsdextrautils)
