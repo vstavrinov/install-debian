@@ -1,0 +1,5 @@
+#!ipxe
+
+kernel https://github.com/vstavrinov/install-debian/releases/latest/download/vmlinuz boot=live initrd=initrd.img fetch=https://github.com/vstavrinov/install-debian/releases/latest/download/filesystem.squashfs
+initrd https://github.com/vstavrinov/install-debian/releases/latest/download/initrd.img 
+boot
