@@ -1,10 +1,5 @@
 #!ipxe
 
-menu Choose boot method:
-item initrd=initrd.img UEFI
-item ""  BIOS
-choose initrd
-
-kernel https://github.com/vstavrinov/install-debian/releases/latest/download/vmlinuz boot=live ${initrd} fetch=https://github.com/vstavrinov/install-debian/releases/latest/download/filesystem.squashfs
+kernel https://github.com/vstavrinov/install-debian/releases/latest/download/vmlinuz initrd=initrd.img boot=live fetch=https://github.com/vstavrinov/install-debian/releases/latest/download/filesystem.squashfs
 initrd https://github.com/vstavrinov/install-debian/releases/latest/download/initrd.img 
 boot
