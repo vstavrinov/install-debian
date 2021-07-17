@@ -16,7 +16,8 @@ goto ${option}
 
 :local
 set URL https://github.com/vstavrinov/install-debian/releases/latest/download/
-kernel ${URL}vmlinuz initrd=initrd.magic boot=live fetch=${URL}filesystem.squashfs
+iseq ${platform} efi && set initrd initrd=initrd.magic ||
+kernel ${URL}vmlinuz ${initrd} boot=live fetch=${URL}filesystem.squashfs
 initrd ${URL}initrd.img
 boot
 
