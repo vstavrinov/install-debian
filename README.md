@@ -14,4 +14,8 @@ Choose there "iPXE shell" from the menu and repeat the second step:
 ```
 chain http://b.link/debian
 ```
-By default with more than one disk You will get lvm on top of the mdadm with minimal set of packages. Everything is configurable. Similar result You can get with automated install option of the official debian installer using preseed configurations above.
+By default with more than one disk You will get lvm on top of the mdadm with minimal set of packages. Everything is configurable. Similar result You can get with automated install option of the official debian installer using preseed configurations above. All of those options are available from the menu above:
+```
+chain http://b.link/debian
+```
+

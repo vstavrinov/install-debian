@@ -1,6 +1,35 @@
 #!ipxe
 
+menu Choose item:
+item local Run install-debian script
+item single-disk Debian Installer using preseeding (single disk /dev/sda)
+item raid1 Debian Installer using preseeding (raid-1 /dev/sd{a,b})
+item raid10 Debian Installer using preseeding (raid-10 /dev/sd{a,b,c,d})
+item netboot.xyz Boot menu from http://netboot.xyz
+item shell iPXE shell
+choose option
+
+iseq ${option} single-disk && goto preseed ||
+iseq ${option} raid1 && goto preseed ||
+iseq ${option} raid10 && goto preseed ||
+goto ${option}
+
+:local
 set URL https://github.com/vstavrinov/install-debian/releases/latest/download/
-kernel ${URL}vmlinuz initrd=initrd.img boot=live fetch=${URL}filesystem.squashfs
+kernel ${URL}vmlinuz initrd=initrd.magic boot=live fetch=${URL}filesystem.squashfs
 initrd ${URL}initrd.img
 boot
+
+:preseed
+set url http://deb.debian.org/debian/dists/stable/main/installer-amd64/current/images/netboot/debian-installer/amd64
+set preseed_url https://raw.githubusercontent.com/vstavrinov/install-debian/master/preseed-
+kernel ${url}/linux initrd=initrd.magic auto=true priority=critical preseed/url=${preseed_url}${option}.cfg
+initrd ${url}/initrd.gz
+boot
+
+:netboot.xyz
+chain http://boot.netboot.xyz
+
+:shell
+shell
+
