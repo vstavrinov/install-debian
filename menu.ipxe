@@ -1,5 +1,6 @@
 #!ipxe
 
+:menu
 menu Choose item:
 item local Run install-debian script
 item single-disk Debian Installer using preseeding (single disk /dev/sda)
@@ -15,6 +16,7 @@ iseq ${option} raid10 && goto preseed ||
 goto ${option}
 
 :local
+imgfree
 set URL https://github.com/vstavrinov/install-debian/releases/latest/download/
 iseq ${platform} efi && set initrd initrd=initrd.img ||
 kernel ${URL}vmlinuz ${initrd} boot=live fetch=${URL}filesystem.squashfs
@@ -22,6 +24,7 @@ initrd ${URL}initrd.img
 boot
 
 :preseed
+imgfree
 set url http://deb.debian.org/debian/dists/stable/main/installer-amd64/current/images/netboot/debian-installer/amd64
 set preseed_url https://raw.githubusercontent.com/vstavrinov/install-debian/master/preseed-
 kernel ${url}/linux initrd=initrd.magic auto=true priority=critical preseed/url=${preseed_url}${option}.cfg
@@ -29,8 +32,13 @@ initrd ${url}/initrd.gz
 boot
 
 :netboot.xyz
-chain http://boot.netboot.xyz
+chain --autofree http://boot.netboot.xyz
 
 :shell
 shell
+goto menu
 
+:error
+echo Something went wrong...
+prompt Press any key to continue.
+goto menu
