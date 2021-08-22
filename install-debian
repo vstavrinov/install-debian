@@ -120,7 +120,7 @@ init_variables ()
     LIMIT=200
     RATE=5
     BIOS=2
-    EFI=1
+    EFI=32
     IFACE=$(ip route | awk '/default/ {print $NF}')
     : "${ADDRESS:=$(ip addr | awk "/inet .* $IFACE/ {print \$2}")}"
     : "${GATEWAY:=$(ip route  | awk '/^default via / {print $3}')}"
@@ -456,18 +456,21 @@ check_utils ()
     "
 
     for prog in $UTILS; do
-        if ! type "$prog" > /dev/null; then
-            echo "
-            $prog not found.
-            You MUST have all of those uitls to be installed:
-            "
-            echo "$UTILS"
-            echo "
-            Exiting ...
-            "
-            exit
-        fi
+        type "$prog" > /dev/null 2>&1 ||
+        MISSING="$MISSING $prog"
     done
+    if [ -n "$MISSING" ]; then
+        echo "
+        $MISSING not found.
+        You MUST have all of these utilities installed:
+        "
+        echo "$UTILS"
+        echo "
+        Exiting ...
+        "
+        exit
+    fi
+
     [ -n "$VERBOSE" ] && echo "Check Utils finish."
 } # check_utils
 
@@ -603,11 +606,6 @@ show_var ()
     gawk '{printf(" %-39s %-39s\n", $1, $2)}'
     echo " ARRAY=(${ARRAY[*]})"
 } # show_var ()
-
-mb_to_cyl ()
-{
-    echo $((($1*1024*1024)/CS))
-}
 
 chrooted_procs ()
 {
@@ -827,12 +825,11 @@ create_space ()
         for MEMBER in ${POOL[@]}; do
             [ -n "$VERBOSE" ] && echo Start partitioning  "$MEMBER"  ...
             if ! $STRIPE; then
-                extent_size=$(mb_to_cyl $EXTENT)
-                extent_end=$((BIOS+EFI+extent_size))
+                extent_end=$((BIOS+EFI+EXTENT-1))
                 parted "$MEMBER"                                  \
                     mklabel gpt                                   \
-                    unit cyl                                      \
-                    mkpart primary ext2 0 $BIOS                   \
+                    unit MiB                                      \
+                    mkpart primary ext2 1 $BIOS                   \
                     set 1 bios_grub on                            \
                     mkpart primary fat32 $BIOS $((BIOS+EFI))      \
                     mkpart primary ext2 $((BIOS+EFI)) $extent_end \
@@ -840,15 +837,14 @@ create_space ()
                     quit
             else
                 parted -s "$MEMBER" mklabel gpt
-                boot_size=$(mb_to_cyl $BOOT)
-                boot_end=$((BIOS+EFI+boot_size))
-                extent_end=$(parted -sm $DEVICE unit cyl print |
+                boot_end=$((BIOS+EFI+BOOT))
+                extent_end=$(parted -sm $DEVICE unit MiB print |
                     awk -F: -v NODE=$DEVICE '{
-                        if ($1 == NODE) print gensub("cyl", "", 1, $2)
+                        if ($1 == NODE) print gensub("MiB", "", 1, $2)-1
                         }')
                 parted "$MEMBER"                                \
-                    unit cyl                                    \
-                    mkpart primary ext2 0 $BIOS                 \
+                    unit MiB                                    \
+                    mkpart primary ext2 1 $BIOS                 \
                     set 1 bios_grub on                          \
                     mkpart primary fat32 $BIOS $((BIOS+EFI))    \
                     mkpart primary ext2 $((BIOS+EFI)) $boot_end \
