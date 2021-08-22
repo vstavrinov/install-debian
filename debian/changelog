@@ -1,3 +1,23 @@
+install-debian (2.3.6) unstable; urgency=medium
+
+  * add ipxe boot script
+  * Update README.md
+  * README: fixed ipxe instruction
+  * update iPXE instruction
+  * preseed-raid10.cfg: fixing and clean up
+  * preseed-raid10.cfg: rename volume group and root volume
+  * add BIOS and UEFI  boot options to ipxe script
+  * ipxe: remove menu
+  * ipxe: introduce URL variable
+  * ipxe and preseeding: some fixing, refactoring and additions
+  * ipxe fixing: remove magic initrd for pc platform
+  * add ipxe binaries with embedded script
+  * ipxe:  to free image before any load.
+  * - remove ipxe binaries and extra device initializations
+  * adjust to Debain 11 release:
+
+ -- Vladimir Stavrinov <vstavrinov@gmail.com>  Sun, 22 Aug 2021 19:45:21 +0300
+
 install-debian (2.3.5) unstable; urgency=medium
 
   * replace bsdextrautils as not available in stable distribution with bsdmainutils
