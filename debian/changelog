@@ -1,3 +1,9 @@
+install-debian (2.3.8) unstable; urgency=medium
+
+  * update version
+
+ -- Vladimir Stavrinov <vstavrinov@gmail.com>  Sun, 22 Aug 2021 19:52:44 +0300
+
 install-debian (2.3.7) unstable; urgency=medium
 
   * update version
