@@ -6,7 +6,7 @@
 
 #set -x -v
 
-VERSION=2.3.6
+VERSION=2.3.8
 if [ "$(id -u)" -ne 0 ]; then
     echo "
     Your should be root to run this script.
