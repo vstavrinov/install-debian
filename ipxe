@@ -17,7 +17,7 @@ goto ${option}
 
 :local
 imgfree
-set URL https://b.link/ipxe/
+set URL https://github.com/vstavrinov/install-debian/releases/latest/download/
 iseq ${platform} efi && set initrd initrd=initrd.img ||
 kernel ${URL}vmlinuz ${initrd} boot=live fetch=${URL}filesystem.squashfs
 initrd ${URL}initrd.img
