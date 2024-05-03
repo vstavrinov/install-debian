@@ -6,7 +6,7 @@
 
 #set -x -v
 
-VERSION=2.3.8
+VERSION=2.3.9
 if [ "$(id -u)" -ne 0 ]; then
     echo "
     Your should be root to run this script.
@@ -21,6 +21,7 @@ unset APT || true
 unset APT_OPTIONS || true
 unset ARCH || true
 unset BOOT || true
+unset BOOT_SPLASH || true
 unset DEVICE || true
 unset CREATE || true
 unset ARRAY || true
@@ -51,6 +52,7 @@ unset var || true
 [ -r /etc/install-debian/local.conf ] && . /etc/install-debian/local.conf
 
 
+: ${BOOT_SPLASH:="ftp://ftp.ru.debian.org/debian"}
 kernels_number=2
 kernel_size=64
 modules_size=384
@@ -121,7 +123,7 @@ init_variables ()
     RATE=5
     BIOS=2
     EFI=32
-    IFACE=$(ip route | awk '/default/ {print $NF}')
+    IFACE=$(ip route | awk '/default/ {print $(NF-1)}')
     : "${ADDRESS:=$(ip addr | awk "/inet .* $IFACE/ {print \$2}")}"
     : "${GATEWAY:=$(ip route  | awk '/^default via / {print $3}')}"
     : "${HOSTNAME:=$(hostname)}"
@@ -438,7 +440,6 @@ check_utils ()
     yes
     partx
     sort
-    dmraid
     pvremove
     pvs
     $APT
@@ -551,13 +552,10 @@ space_cutting ()
                 srv))
 
 
-        # Check device if it is dmaraid mdadm to install it,
+        # Check device if it is mdadm to install it,
 
-        if dmraid -s "$(basename "$DEVICE")"; then
-            DMRAID="dmraid"
-        elif mdadm -D "$DEVICE" || [ ${#ARRAY[@]} -gt 1 ]; then
+        if mdadm -D "$DEVICE" || [ ${#ARRAY[@]} -gt 1 ]; then
             MDADM="mdadm"
-            :
         fi
 
     fi # if $PARTITION; then
@@ -681,7 +679,7 @@ cleanup_structures ()
         awk '{print $2}'|
         while read -r MD; do
             mdadm -DY $MD |
-            awk -F= '/MD_DEVICE_ev_.*_DEV/ {print $2}'|
+            awk -F= '/MD_DEVICE_dev_.*_DEV/ {print $2}'|
             while read -r MD_DEV; do
                 for DEV in $DEVICE ${ARRAY[@]}; do
                     [ "${MD_DEV#$DEV}" != "$MD_DEV" ] &&
@@ -695,7 +693,7 @@ cleanup_structures ()
     ARRAY_DEVICES="$ARRAY_DEVICES $CORE"
 
     ARRAY_MEMBERS="$( mdadm -DsY |
-        awk -F= '/MD_DEVICE_ev_.*_DEV/ {print $2}'|
+        awk -F= '/MD_DEVICE_dev_.*_DEV/ {print $2}'|
         while read -r MD_DEV; do
             for DEV in $DEVICE ${ARRAY[@]}; do
                 [ "${MD_DEV#$DEV}" != "$MD_DEV" ] &&
@@ -784,7 +782,8 @@ clean_space ()
         mdadm $VERBOSE --zero-superblock $ARRAY_MEMBERS
         [ -n "$VERBOSE" ] && echo "Remove partitions"
         for MEMBER in ${DEVICE} ${ARRAY[@]}; do
-            parted -sm $MEMBER mklabel gpt
+            partx --delete $MEMBER
+            parted --script --machine $MEMBER mklabel gpt
             dd if=/dev/zero of=$MEMBER count=4
         done
     fi # if $PARTITION
@@ -919,7 +918,6 @@ create_space ()
         if ! $STRIPE; then
             mount $VERBOSE /dev/$GROUP/boot "${TARGET}/boot"
             mkdir "${TARGET}/boot/efi"
-            mount $VERBOSE ${PART}2 "${TARGET}/boot/efi"
         else
             mount $VERBOSE $CORE "${TARGET}/boot"
         fi
@@ -1105,13 +1103,13 @@ install_packages ()
     mount $VERBOSE /dev/pts
 
     MAIN_LIST="
+    rsyslog
     grub-pc-bin
     $GRUB
     lvm2
     gawk
     parted
     dosfstools
-    $DMRAID
     $MDADM
     sudo
     vim
@@ -1127,8 +1125,6 @@ install_packages ()
     mailutils
     fortunes
     fortunes-ru
-    grub-splashimages
-    grub2-splashimages
     host
     procinfo
     pciutils
@@ -1145,6 +1141,7 @@ install_packages ()
     bc
     man-db
     bash-completion
+    wget
     "
 
     # Set non-interactive mode
@@ -1235,18 +1232,14 @@ install_packages ()
     echo 'kern.=warning  /var/log/kern.warning' >> \$SYSLOG_CONF
 
     cd /boot/grub
-    if [ -n "$BOOT_SPLASH" ]; then
-        wget -nv $VERBOSE -P /boot/grub \$(echo $BOOT_SPLASH)
-        if file /boot/grub/\$(basename $BOOT_SPLASH) 2>&1| grep -qiw image;\
-        then
-            ln $VERBOSE -sf \$(basename $BOOT_SPLASH)  moreblue-orbit-grub.tga
-        fi
-    else
-        ln $VERBOSE -sf /usr/share/images/grub/Lake_mapourika_NZ.tga \
-            moreblue-orbit-grub.tga
-        cd -
-    fi
-
+    wget --output-document=- \
+    $BOOT_SPLASH/pool/main/g/grub2-splashimages/grub2-splashimages_*.tar.xz |
+    tar --file=- --wildcards --strip-components=1 --extract --xz \
+        --one-top-level=/usr/share/images/grub                   \
+        grub2-splashimages-*/Lake_mapourika_NZ.tga
+    cd -
+    echo 'GRUB_BACKGROUND=/usr/share/images/grub/Lake_mapourika_NZ.tga
+         ' > /etc/default/grub.d/background.cfg
     chmod 755 /etc/grub.d/06_local_theme
     sed 's/\(GRUB_CMDLINE_LINUX_DEFAULT=\)"\(.*\)quiet\(.*\)"/\1"\2 \3"/' \
         /etc/default/grub
@@ -1307,6 +1300,7 @@ install_boot_loader ()
             ;;
         esac
     fi
+    sed -i '/GRUB_CMDLINE_LINUX_DEFAULT/s/quiet//' /etc/default/grub
     update-grub
 EOB
 } # install_boot_loader ()
