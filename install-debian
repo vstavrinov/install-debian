@@ -6,7 +6,7 @@
 
 #set -x -v
 
-VERSION=2.3.9
+VERSION=2.4.0
 if [ "$(id -u)" -ne 0 ]; then
     echo "
     Your should be root to run this script.
@@ -123,7 +123,7 @@ init_variables ()
     RATE=5
     BIOS=2
     EFI=32
-    IFACE=$(ip route | awk '/default/ {print $(NF-1)}')
+    IFACE=$(ip route | awk '/default/ {print $(NF)}')
     : "${ADDRESS:=$(ip addr | awk "/inet .* $IFACE/ {print \$2}")}"
     : "${GATEWAY:=$(ip route  | awk '/^default via / {print $3}')}"
     : "${HOSTNAME:=$(hostname)}"
