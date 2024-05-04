@@ -1,3 +1,10 @@
+install-debian (2.4.0) unstable; urgency=medium
+
+  * set username root for ipxe boot
+  * fix ip address detection
+
+ -- Vladimir Stavrinov <vstavrinov@gmail.com>  Sat, 04 May 2024 16:24:01 +0300
+
 install-debian (2.3.9) unstable; urgency=medium
 
   * ipxe: back to media location on github
