@@ -1,3 +1,9 @@
+install-debian (2.4.1) unstable; urgency=medium
+
+  * introduce dhcp method
+
+ -- Vladimir Stavrinov <vstavrinov@gmail.com>  Sun, 05 May 2024 14:48:29 +0300
+
 install-debian (2.4.0) unstable; urgency=medium
 
   * set username root for ipxe boot
