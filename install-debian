@@ -6,7 +6,7 @@
 
 #set -x -v
 
-VERSION=2.4.0
+VERSION=2.4.1
 if [ "$(id -u)" -ne 0 ]; then
     echo "
     Your should be root to run this script.
@@ -17,6 +17,7 @@ fi
 SELF_NAME=$(basename "$0")
 
 unset ADDRESS || true
+unset METHOD || true
 unset APT || true
 unset APT_OPTIONS || true
 unset ARCH || true
@@ -124,8 +125,14 @@ init_variables ()
     BIOS=2
     EFI=32
     IFACE=$(ip route | awk '/default/ {print $(NF)}')
-    : "${ADDRESS:=$(ip addr | awk "/inet .* $IFACE/ {print \$2}")}"
     : "${GATEWAY:=$(ip route  | awk '/^default via / {print $3}')}"
+    : "${ADDRESS:=$(ip addr | awk "/inet ${GATEWAY%.*}.* $IFACE/ {print \$2}")}"
+    if [ -f /var/lib/dhcp/dhclient.$IFACE.leases ] &&
+        grep -q ${ADDRESS%%/*} /var/lib/dhcp/dhclient.$IFACE.leases; then
+        METHOD=dhcp
+    else
+        METHOD=static
+    fi
     : "${HOSTNAME:=$(hostname)}"
     : "${DOMAIN:=$(domainname -d)}"
     : "${DOMAIN:="oz"}"
@@ -594,6 +601,7 @@ show_var ()
     VOLUME=$VOLUME
     RESERVE=$RESERVE
     ADDRESS=${ADDRESS}
+    METHOD=${METHOD}
     GATEWAY=${GATEWAY}
     NAMESERVER=${NAMESERVER}
     HOSTNAME=${HOSTNAME}
@@ -1000,7 +1008,7 @@ configure_system ()
 
     iface lo inet loopback
 
-    iface $IFACE inet static
+    iface $IFACE inet $METHOD
         address $ADDRESS
         gateway $GATEWAY
 
