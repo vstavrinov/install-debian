@@ -10,7 +10,7 @@ Vcs-Browser: https://github.com/vstavrinov/install-debian
 
 Package: install-debian
 Architecture: all
-Depends: ${misc:Depends}, debootstrap, dialog, gawk, grub-pc-bin, grub-efi, lvm2, mdadm, parted, procps, dosfstools, bsdmainutils
+Depends: ${misc:Depends}, debootstrap, dialog, gawk, grub-pc-bin, grub-efi, lvm2, mdadm, parted, procps, dosfstools, bsdmainutils sipcalc
 Description: This command line utility installs Debian system non-interactively
  It should be started from within Live CD, Network Boot or from any bootable
  media, other then Your system disk. It fully supports software RAID and UEFI

@@ -6,7 +6,7 @@
 
 #set -x -v
 
-VERSION=2.4.1
+VERSION=2.4.2
 if [ "$(id -u)" -ne 0 ]; then
     echo "
     Your should be root to run this script.
@@ -126,10 +126,18 @@ init_variables ()
     EFI=32
     IFACE=$(ip route | awk '/default/ {print $(NF)}')
     : "${GATEWAY:=$(ip route  | awk '/^default via / {print $3}')}"
-    : "${ADDRESS:=$(ip addr | awk "/inet ${GATEWAY%.*}.* $IFACE/ {print \$2}")}"
+    : "${ADDRESS:=$(ip route | awk '!/^default / {print $1, $NF}' |
+                    while read NETWORK ADDRESS; do
+                        if [ "$(sipcalc $GATEWAY/${NETWORK#*/} |
+                        awk '/^Network address/ {print $NF}'
+                        )" = "${NETWORK%/*}" ]; then
+                            echo $ADDRESS;
+                            break
+                        fi;
+                    done)}"
     if [ -f /var/lib/dhcp/dhclient.$IFACE.leases ] &&
         grep -q ${ADDRESS%%/*} /var/lib/dhcp/dhclient.$IFACE.leases; then
-        METHOD=dhcp
+        : ${METHOD:=dhcp}
     else
         METHOD=static
     fi
@@ -206,9 +214,9 @@ usage ()
     -S srv
         /srv partition size, Mb [ $srv ]
     -I ADDRESS
-        IP Adress/mask [ $ADDRESS ]
+        IP Adress/mask, require GATEWAY [ $ADDRESS ]
     -G GATEWAY
-        Default Gateway [ $GATEWAY ]
+        Default Gateway, require ADDRESS [ $GATEWAY ]
     -N HOSTNAME
         Host Name [ $HOSTNAME ]
     -D DOMAIN
@@ -309,18 +317,21 @@ get_options ()
             ;;
         I)
             ADDRESS=$OPTARG
+            METHOD=static
+            IP=manual
             ;;
         G)
             GATEWAY=$OPTARG
+            GW=manual
+            ;;
+        E)
+            NAMESERVER=$OPTARG
             ;;
         N)
             HOSTNAME=$OPTARG
             ;;
         D)
             DOMAIN=$OPTARG
-            ;;
-        E)
-            NAMESERVER=$OPTARG
             ;;
         Z)
             TIMEZONE=$OPTARG
@@ -376,6 +387,14 @@ get_options ()
             ;;
         esac
     done
+    if ([ -n "$IP" ] && [ -z "$GW" ]) ||
+       ([ -z "$IP" ] && [ -n "$GW" ]); then
+       echo "
+       You must not set ADDRESS or GATEWAY alone.
+       Use both -I and -G options or none of them.
+       "
+       exit 1
+    fi
     shift  $((OPTIND - 1))
         if [ -n "$1" ]; then
             if [ -z "$2" ]; then
@@ -461,6 +480,7 @@ check_utils ()
     mkdir
     vgs
     vgremove
+    sipcalc
     "
 
     for prog in $UTILS; do
@@ -491,7 +511,7 @@ space_cutting ()
     if $PARTITION; then
         if ! [ -b "$DEVICE" ]; then
             echo "There are no such block device $DEVICE". Exiting ...
-            exit 1
+            exit 2
         fi
 
         DISK=$(awk "{
@@ -989,7 +1009,7 @@ install_base_system ()
     [ -n "$VERBOSE" ] && echo "Installing Base System ..."
     if ! $DEBOOTSTRAP ${VERBOSE:+--verbose} "${BSOPT[@]}" --arch="$ARCH" "$SUITE" $TARGET "$MIRROR"; then
         echo "Base System installation failed. Exiting ..."
-        exit 1
+        exit 3
     fi
     echo 'blacklist floppy' > $TARGET/etc/modprobe.d/blacklist-floppy.conf
 } # install_base_system ()
@@ -1499,7 +1519,7 @@ if ! [ -f $RULES ]; then
         Rules file $RULES not available.
         Exiting ...
         "
-        exit 1
+        exit 3
 fi
 echo "Firewall $1"
 case $1 in
