@@ -1,3 +1,9 @@
+install-debian (2.4.3) unstable; urgency=medium
+
+  * fix debian control syntax
+
+ -- Vladimir Stavrinov <vstavrinov@gmail.com>  Wed, 08 May 2024 15:53:03 +0300
+
 install-debian (2.4.2) unstable; urgency=medium
 
   * fix unambiguous ip calculating
