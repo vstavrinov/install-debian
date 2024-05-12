@@ -6,7 +6,7 @@
 
 #set -x -v
 
-VERSION=2.4.3
+VERSION=2.4.4
 if [ "$(id -u)" -ne 0 ]; then
     echo "
     Your should be root to run this script.
@@ -116,7 +116,7 @@ init_variables ()
     : "${BOOT:=$(((kernel_size*kernels_number+loader_size)*12/10))}"
     : "${TMP:=128}"
     : "${USR:=$((832+(modules_size*kernels_number)*12/10))}"
-    : "${var:=$((256+modules_size))}"
+    : "${var:=$((512+modules_size))}"
     : "${home:=128}"
     : "${opt:=0}"
     : "${srv:=0}"

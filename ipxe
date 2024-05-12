@@ -29,10 +29,10 @@ set url http://deb.debian.org/debian/dists/stable/main/installer-amd64/current/i
 set preseed_url https://raw.githubusercontent.com/vstavrinov/install-debian/master/preseed-
 kernel ${url}/linux initrd=initrd.magic auto=true priority=critical preseed/url=${preseed_url}${option}.cfg
 initrd ${url}/initrd.gz
-boot
+boot || goto error
 
 :netboot.xyz
-chain --autofree http://boot.netboot.xyz
+chain --autofree http://boot.netboot.xyz || goto error
 
 :shell
 shell
