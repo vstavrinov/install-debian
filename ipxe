@@ -19,7 +19,7 @@ goto ${option}
 imgfree
 set URL https://github.com/vstavrinov/install-debian/releases/latest/download/
 iseq ${platform} efi && set initrd initrd=initrd.img ||
-kernel ${URL}vmlinuz ${initrd} boot=live fetch=${URL}filesystem.squashfs username=root
+kernel ${URL}vmlinuz ${initrd} boot=live fetch=${URL}filesystem.squashfs username=root ip=frommedia
 initrd ${URL}initrd.img
 boot
 
@@ -27,7 +27,7 @@ boot
 imgfree
 set url http://deb.debian.org/debian/dists/stable/main/installer-amd64/current/images/netboot/debian-installer/amd64
 set preseed_url https://raw.githubusercontent.com/vstavrinov/install-debian/master/preseed-
-kernel ${url}/linux initrd=initrd.magic auto=true priority=critical preseed/url=${preseed_url}${option}.cfg
+kernel ${url}/linux initrd=initrd.gz auto=true priority=critical preseed/url=${preseed_url}${option}.cfg
 initrd ${url}/initrd.gz
 boot || goto error
 
