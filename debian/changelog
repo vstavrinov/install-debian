@@ -1,3 +1,9 @@
+install-debian (2.4.5) unstable; urgency=medium
+
+  * set dual pcbios/efi boot
+
+ -- Vladimir Stavrinov <vstavrinov@gmail.com>  Sat, 29 Jun 2024 19:43:18 +0000
+
 install-debian (2.4.4) unstable; urgency=medium
 
   * Increase default /var volume
