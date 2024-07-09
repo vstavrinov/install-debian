@@ -6,7 +6,7 @@
 
 #set -x -v
 
-VERSION=2.4.5
+VERSION=2.4.6
 if [ "$(id --user)" -ne 0 ]; then
     echo "
     Your should be root to run this script.
@@ -123,7 +123,7 @@ init_variables ()
     : "${opt:=0}"
     : "${srv:=0}"
     LIMIT=200
-    RATE=5
+    RATE=50
     BIOS=2
     EFI=32
     IFACE=$(ip route | awk '/default/ {print $(NF)}')
@@ -143,9 +143,6 @@ init_variables ()
         : ${METHOD:=dhcp}
     else
         METHOD=static
-        STATIC="
-        address $ADDRESS
-        gateway $GATEWAY"
     fi
     : "${HOSTNAME:=$(hostname)}"
     : "${DOMAIN:=$(domainname --domain)}"
@@ -549,6 +546,14 @@ space_cutting ()
             SWAP=$RAM
             ;;
         esac
+        if ! $STRIPE; then
+            RESERVE=$((DISK*RATE/100))
+            [ $RESERVE -lt $LIMIT ] && RESERVE=$LIMIT
+            EXTENT=$((DISK-RESERVE))
+        else
+            EXTENT=$((DISK-BOOT))
+            :
+        fi
         VOLUME=$((USR +
                     TMP +
                     ROOT +
@@ -558,7 +563,7 @@ space_cutting ()
                     srv +
                     var))
 
-        if [ $DISK -lt $VOLUME ]; then
+        if [ $EXTENT -lt $VOLUME ]; then
             SWAP=10
             VOLUME=$((USR +
                         TMP +
@@ -569,14 +574,6 @@ space_cutting ()
                         srv +
                         var))
 
-        fi
-        if ! $STRIPE; then
-            RESERVE=$((DISK*RATE/100))
-            [ $RESERVE -lt $LIMIT ] && RESERVE=$LIMIT
-            EXTENT=$((DISK-RESERVE))
-        else
-            EXTENT=$((DISK-BOOT))
-            :
         fi
 
         var=$((VOLUME -
@@ -1044,14 +1041,17 @@ configure_system ()
     echo "$FSTAB" |
     column --table > ${TARGET}/etc/fstab
 
+    [ "$METHOD" = "static" ] &&
+    STATIC="
+        address $ADDRESS
+        gateway $GATEWAY"
     echo "
     auto lo $IFACE
 
     iface lo inet loopback
 
-    iface $IFACE inet $METHOD
-        $STATIC
-    " > ${TARGET}/etc/network/interfaces
+    iface $IFACE inet $METHOD $STATIC
+    " | sed 's/^    //'  > ${TARGET}/etc/network/interfaces
 
     echo "$HOSTNAME
     " > ${TARGET}/etc/hostname
@@ -1440,8 +1440,6 @@ exit $?
 cat > /dev/null <<EOT
 ###  BEGIN /etc/profile.d/local.sh  ###
 #
-PATH=/opt/bin:$PATH
-alias dictl='dictl -d mueller7accent'
 export EDITOR=vim
 export HOSTNAME
 alias ls='ls'
