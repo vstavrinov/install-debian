@@ -1,3 +1,9 @@
+install-debian (2.4.6) unstable; urgency=medium
+
+  * configuration & fixing:
+
+ -- Vladimir Stavrinov <vstavrinov@gmail.com>  Tue, 09 Jul 2024 20:10:55 +0300
+
 install-debian (2.4.5) unstable; urgency=medium
 
   * set dual pcbios/efi boot
