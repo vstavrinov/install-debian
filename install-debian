@@ -6,7 +6,7 @@
 
 #set -x -v
 
-VERSION=2.4.6
+VERSION=2.5.0
 if [ "$(id --user)" -ne 0 ]; then
     echo "
     Your should be root to run this script.
@@ -806,8 +806,10 @@ clean_space ()
         umount_target
         invoke-rc.d lvm2 restart
         [ -n "$VERBOSE" ] && echo "Remove volume groups and volumes"
-        [ -n "$VGS" ] &&
-        vgremove $VERBOSE --yes --force --force $VGS
+        if [ -n "$VGS" ]; then
+            vgchange $VERBOSE --activate=n --yes --force --force $VGS
+            vgremove $VERBOSE --yes --force --force $VGS
+        fi
         [ -n "$VERBOSE" ] && echo "Remove physical volumes"
         [ -n "$PVS" ] &&
         pvremove $VERBOSE --yes --force --force $PVS
@@ -841,10 +843,11 @@ create_space ()
         # create single mirror array
         if ! $STRIPE; then
             if $CREATE; then
-                echo yes |
+                echo y |
                 mdadm $VERBOSE  --create $CORE                         \
                                 --level mirror                         \
                                 --metadata=1.0                         \
+                                --bitmap=internal                      \
                                 --raid-devices=$((${#ARRAY[@]}-SPARE)) \
                                 --spare-devices=$SPARE                 \
                                 "${ARRAY[@]}"
@@ -896,15 +899,19 @@ create_space ()
 
         # create double raid arrays
         if $STRIPE && $CREATE; then
-            echo yes |
+            echo y |
             mdadm --create $CORE                         \
                   --level mirror                         \
+                  --metadata=1.0                         \
+                  --bitmap=internal                      \
                   --raid-devices $((${#ARRAY[@]}-SPARE)) \
                   --spare-devices $SPARE                 \
                   $(echo -n "${ARRAY[@]}" | sed 's/\([^ ]\+\)/\13/g')
             DEVICE=$CORE
+            echo y |
             mdadm --create $RAID                         \
                   --level $LEVEL                         \
+                  --bitmap=internal                      \
                   --raid-devices $((${#ARRAY[@]}-SPARE)) \
                   --spare-devices $SPARE                 \
                 $(echo -n "${ARRAY[@]}" | sed 's/\([^ ]\+\)/\14/g')
@@ -1180,7 +1187,7 @@ install_packages ()
     usbutils
     lsscsi
     scsitools
-    ntp
+    ntpsec
     lsof
     ethtool
     mtr
@@ -1328,8 +1335,8 @@ install_boot_loader ()
         mkdir $VERBOSE /boot/efi/EFI/boot
         cp $VERBOSE /boot/efi/EFI/debian/grubx64.efi \
                     /boot/efi/EFI/boot/bootx64.efi
-        CONF="configfile (lvm/sys-boot)/grub/grub.cfg"
-        echo $CONF > /boot/efi/EFI/boot/grub.cfg
+        CONF="configfile /EFI/debian/grub.cfg"
+        echo \$CONF > /boot/efi/EFI/boot/grub.cfg
         sfdisk $DEVICE --part-type 2 "EFI System"
         sfdisk $DEVICE --part-type 3 "Linux LVM"
     else
@@ -1341,10 +1348,10 @@ install_boot_loader ()
             grub-install.bin --target=i386-pc \\\${MEMBER}
             grub-install.bin --target=x86_64-efi \\\${MEMBER}
             if [ -e /sys/firmware/efi ]; then
-                efibootmgr --verbose | gawk \"/\\\$(
+                efibootmgr | gawk \"/\\\$(
                     blkid --match-tag PARTUUID --output value \\\${MEMBER}2)/ {
-                    print(gensub(\\\\\"Boot([[:xdigit:]]{4})\\\\\\\\\*\\\\\",
-                        \\\\\"\\\\\\\\\1\\\\\", \\\\\"g\\\\\", \\\\\\\$1))}\" |
+                    print(gensub(\\\\\"Boot([[:xdigit:]]{4})\\\\\\\\\\\\\\\\\\\\\\\\\*\\\\\",
+                        \\\\\"\\\\\\\\\\\\\\\\\\\\\\\\\\\\\1\\\\\", 1, \\\\\\\$1))}\" |
                 while read BOOTNUM; do
                     efibootmgr --bootnum \\\${BOOTNUM} --delete-bootnum
                 done
@@ -1355,7 +1362,7 @@ install_boot_loader ()
             mkdir $VERBOSE /boot/efi/EFI/boot
             cp --archive --verbose /boot/efi/EFI/*/grubx64.efi \\\\
                 /boot/efi/EFI/boot/bootx64.efi
-            CONF=\"configfile (lvm/$GROUP-boot)/grub/grub.cfg\"
+            CONF=\"configfile /EFI/debian/grub.cfg\"
             echo \\\$CONF > /boot/efi/EFI/boot/grub.cfg
         done
         " > /usr/sbin/grub-install.sh
