@@ -1,3 +1,9 @@
+install-debian (2.5.1) unstable; urgency=medium
+
+  * fix networking
+
+ -- Vladimir Stavrinov <vstavrinov@gmail.com>  Tue, 14 Apr 2026 16:48:59 +0300
+
 install-debian (2.5.0) unstable; urgency=medium
 
   * fix dependencies, clean_space, create_space, install_packages, install_boot_loader & preseed:

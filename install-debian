@@ -6,7 +6,7 @@
 
 #set -x -v
 
-VERSION=2.5.0
+VERSION=2.5.1
 if [ "$(id --user)" -ne 0 ]; then
     echo "
     Your should be root to run this script.
@@ -126,24 +126,22 @@ init_variables ()
     RATE=50
     BIOS=2
     EFI=32
-    IFACE=$(ip route | awk '/default/ {print $(NF)}')
-    : "${GATEWAY:=$(ip route  | awk '/^default via / {print $3}')}"
-    : "${ADDRESS:=$(ip route | awk '!/^default / {print $1, $NF}' |
-                    while read NETWORK ADDRESS; do
-                        if [ "$(sipcalc $GATEWAY/${NETWORK#*/} |\
-                        awk '/^Network address/ {print $NF}'    \
-                        )" = "${NETWORK%/*}" ]; then
-                            echo $ADDRESS;
-                            break
-                        fi;
-                    done)}"
-    if [ -f /var/lib/dhcp/*.leases ] &&             \
-        grep --quiet "fixed-address ${ADDRESS%%/*}" \
-            /var/lib/dhcp/*.leases; then
+    if ps w -C dhcpcd | grep --quiet dhcpcd && [ -z "${ADDRESS}" ]; then
         : ${METHOD:=dhcp}
     else
         METHOD=static
     fi
+    IFACE=$(ip route | awk '/default/ {print $5}')
+    : "${GATEWAY:=$(ip route  | awk '/^default via / {print $3}')}"
+    : "${ADDRESS:=$(ip route | awk '!/^default / {print $1, $9}' |
+                    while read NETWORK ADDRESS; do
+                        if [ "$(sipcalc $GATEWAY/${NETWORK#*/} |\
+                        awk '/^Network address/ {print $NF}'    \
+                        )" = "${NETWORK%/*}" ]; then
+                            echo $ADDRESS/${NETWORK#*/};
+                            break
+                        fi;
+                    done)}"
     : "${HOSTNAME:=$(hostname)}"
     : "${DOMAIN:=$(domainname --domain)}"
     : "${DOMAIN:="oz"}"
@@ -627,6 +625,7 @@ show_var ()
     EXTENT=$EXTENT
     VOLUME=$VOLUME
     RESERVE=$RESERVE
+    IFACE=$IFACE
     ADDRESS=${ADDRESS}
     METHOD=${METHOD}
     GATEWAY=${GATEWAY}
